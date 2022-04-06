@@ -41,7 +41,9 @@ First impression: Pretty cool and lots of new stuff to learn. The code is quick,
 3. Installed qibullet, installed ROS wrapper (interface), start reading on ROS/QiBullet combo
 
 4. Need a qibullet wrapper (to be able to use naoqi instance)?
-
-   
+  
+ ## Wednesday April 6th
+ 1. A little bit confused - installed NaoQi wrappper however, I need a robot connection... I'm just trying to move the nao i QiBullet... OK so NaoQi API is for making the actual robot move D'oh! ... Should I stop trying to make the simulation work and just work in the lab with the real thing / NaoQi? I think that's cleared up now.
+ 2. Trying to get QiBullet simulation to walk. However, it seems that only low level motions are implemented. Should I try to get the simulation working for motions or should I learn more about NaoQi? What about Webot? Will look at that for a bit.
 
    
