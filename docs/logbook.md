@@ -1,6 +1,6 @@
 ## Week 1
 ### Done this week
-- Read and ran the ball tracker with pybullet arm simulation ([video ](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view?usp=sharing)
+- Read and ran the ball tracker with pybullet arm simulation ([video ](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view?usp=sharing))
 - Experimented with PyBullet (and QiBullet).
 
 ### Problems / confusions
