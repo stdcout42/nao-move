@@ -1,13 +1,12 @@
 # nao-move
 ## docs
-Contains (raw) logbook.
+- [raw logbook](https://github.com/stdcout42/nao-move/blob/main/docs/raw_logbook.md).
+- [summarized logbook]()
+
 
 ## Google Drive
 [Link](https://drive.google.com/drive/folders/15IWhDwY0hzxDpBRG4-ujRWeK-qrg7z2i?usp=sharing)
 
-Soon to contain:
-- logbook
-- thesis outline
-- related work
-- google slides (for diagrams)
 - results / data folder
+-- Robot arm simulator demo [video]()
+
