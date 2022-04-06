@@ -1,4 +1,4 @@
-# nao-move: Implementing multi-modal control on Nao/Pepper robots using ROS
+# nao-move: implementing multi-modal control on Nao/Pepper robots using ROS
 ## docs
 - [raw logbook](https://github.com/stdcout42/nao-move/blob/main/docs/raw_logbook.md)
 - [summarized logbook](https://github.com/stdcout42/nao-move/blob/main/docs/logbook.md)
