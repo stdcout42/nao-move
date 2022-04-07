@@ -46,3 +46,21 @@ First impression: Pretty cool and lots of new stuff to learn. The code is quick,
  1. A little bit confused - installed NaoQi wrappper however, I need a robot connection... I'm just trying to move the nao i QiBullet... OK so NaoQi API is for making the actual robot move D'oh! ... Should I stop trying to make the simulation work and just work in the lab with the real thing / NaoQi? I think that's cleared up now.
  2. Trying to get QiBullet simulation to walk. However, it seems that only low level motions are implemented. Should I try to get the simulation working for motions or should I learn more about NaoQi? What about Webot? Will look at that for a bit.
  3. While webot works - should I be spending time learning this framework? Can I connect naoqi to webots? Repository naoqism which attemmpts to do just that is deprecated.
+
+## Meeting April 7th
+-  test out, what do we need to add (in terms of fine tuning)
+-  run code: make work with gestures/speech (for now on robot arm)
+
+In parallel, think of use cases:
+- using tools for ex
+- literature on multi-modal
+For these tasks think of goals the tasks need to accomplish.
+Also, think of baselines to improve on.
+
+Article to read:
+P. M. Pilarski, M. R. Dawson, T. Degris, F. Fahimi, J. P. Carey, and R. S. Sutton, ‘‘Online human training of a myoelectric prosthesis controller via actor-critic reinforcement learning,’’ in Proc. IEEE Int. Conf. Rehabil. Robot., Jun. 2011, pp. 1–7.
+
+Literature to look up: multi-modal interfacing
+Authors: Henny Admoni, Maya Cakmak
+
+
