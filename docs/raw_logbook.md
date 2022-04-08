@@ -63,4 +63,10 @@ P. M. Pilarski, M. R. Dawson, T. Degris, F. Fahimi, J. P. Carey, and R. S. Sutto
 Literature to look up: multi-modal interfacing
 Authors: Henny Admoni, Maya Cakmak
 
+## April 7th
+1. In the README.md it is stated that feedback via gestures is _not_ implemented.
+2. Feedback via voice is supposedly implemented - however, I'm not quite catching on how and where that is done. Getting some errors trying to start up those nodes. Tomorrow I will attempt to start up use teachable-machines to set up my own voice commands, as well as understand pybullet movement better.
 
+## April 8th
+1. created a small voice-recognition [here](https://teachablemachine.withgoogle.com/models/YvewNdQBL/) 
+2. After some dependency circulation problems, and switching between distributions, was able to save it to a kerasmodel to load in python 
