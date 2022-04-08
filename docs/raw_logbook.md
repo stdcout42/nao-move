@@ -71,4 +71,4 @@ Authors: Henny Admoni, Maya Cakmak
 1. created a small voice-recognition [here](https://teachablemachine.withgoogle.com/models/YvewNdQBL/) 
 2. After some dependency circulation problems, and switching between distributions, was able to save it to a kerasmodel to load in python 
 3. It's becoming a little bit hard to actually find my way around the teachable model as it only provides the model and no instructions how to actually work with this model. I will now attempt to create my own model (tensorflow).
-4. 
+4. Seemed overkill and overly complicated. Seems like the libraryu speech\_recognition might is the easier way out.
