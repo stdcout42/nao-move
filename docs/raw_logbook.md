@@ -71,4 +71,12 @@ Authors: Henny Admoni, Maya Cakmak
 1. created a small voice-recognition [here](https://teachablemachine.withgoogle.com/models/YvewNdQBL/) 
 2. After some dependency circulation problems, and switching between distributions, was able to save it to a kerasmodel to load in python 
 3. It's becoming a little bit hard to actually find my way around the teachable model as it only provides the model and no instructions how to actually work with this model. I will now attempt to create my own model (tensorflow).
-4. Seemed overkill and overly complicated. Seems like the libraryu speech\_recognition might is the easier way out.
+4. Seemed overkill and overly complicated. Seems like the library speech\_recognition might is the easier way out.
+
+## April 11th
+1. Trying pocketsphinx for word recognition
+2. New API available: vosk
+3. Got the new voice commands working with the feedback topic
+
+## April 12th
+1. Focus will be on getting gestures working. Available are a few models for predicting hand gestures. The feedback to the robot arm is not implemented. The models are in notebook form. I will examine these first. The capturing image script will come in handy.
