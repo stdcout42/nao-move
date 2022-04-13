@@ -84,3 +84,4 @@ Authors: Henny Admoni, Maya Cakmak
 ## April 13th
 1. The capturing script was not behaving as I was expecting. Wrote a new one. Need to acquire new data. This will probably take some time but I will a subset of the classes.
 2. Will also create a new classifier for gestures.
+3. Collected (webcam) pictures for up, down, left, right (for now).
