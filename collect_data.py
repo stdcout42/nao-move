@@ -50,10 +50,10 @@ def shutdown(csv_file, cap, cv2):
   cv2.destroyAllWindows()
 
 # Function is doing too much atm, needs to be modularized better
-def capture_gesture(cap, cv2, gesture_name, csv_file, output_dir):
+def capture_gesture(cap, iid, cv2, gesture_name, csv_file, output_dir):
     print(f'Capturing {gesture_name} gesture')
     file_name = create_filename()
-    file_name += f'_{gesture_name}'
+    file_name += f'_{gesture_name + str(iid)}'
     _, frame = cap.read()
     cv2.imshow(gesture_name, frame)
     key = cv2.waitKey(1)
@@ -81,6 +81,7 @@ keys_dict = {
 }
 def record_save_images(output_dir):
   cap = cv2.VideoCapture(0)
+  iid = 0
   with open(f'{output_dir}.csv', 'a') as csv_file:
     while cap.isOpened():
       try:
@@ -91,7 +92,8 @@ def record_save_images(output_dir):
         if key != -1: 
           key = chr(key)
           if key in keys_dict:
-            capture_gesture(cap, cv2, keys_dict[key], csv_file, output_dir)
+            capture_gesture(cap, iid, cv2, keys_dict[key], csv_file, output_dir)
+            iid += 1
 
           elif key == 'q': # quit program
             print('Quitting...')
