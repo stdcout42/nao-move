@@ -10,3 +10,6 @@
 - results / data folder
     - Robot arm simulator demo [video](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view)
 
+## collect_data.py
+Helper file to record and save training/validation/test images
+
