@@ -13,8 +13,6 @@ is set to 'data'. Examples: 'train', 'validation', 'test'
 def print_usage():
   print(f'Usage:\n\t python3 collect_data.py [output_folder]')
 
-
-
 def create_filename():
   dt = datetime.datetime.now()
   year, month, day, hour, minute, second  = dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second
@@ -48,10 +46,11 @@ class Data_Collector():
     self.cap = cv2.VideoCapture(0)
     self.iid = 0
     
-    self.create_out_folder()
+    self.create_out_dir()
+    self.create_csv_file()
     self.record_save_images()
 
-  def create_out_folder(self):
+  def create_out_dir(self):
     if exists(self.output_dir):
       cont = input(f'{self.output_dir} already exists. Continue and append? y/n: ')
       if cont.strip().lower() != 'y':
@@ -61,30 +60,44 @@ class Data_Collector():
       os.makedirs(self.output_dir)
       print('Done.')
 
-  def record_save_images(self):
-    with open(f'{output_dir}.csv', 'a') as csv_file:
-      self.csv_file = csv_file
+  def create_csv_file(self):
+    if exists(f'{self.output_dir}.csv)'):
+      cont = input(f'{self.output_dir}.csv already exists. Continue and append? y/n: ')
+      if cont.strip().lower() != 'y':
+        exit()
+      self.csv_file =  open(f'{output_dir}.csv', 'a') 
       self.df = pd.read_csv(f'{output_dir}.csv', sep=';')
-      
-      while self.cap.isOpened():
-        try:
-          _, frame = self.cap.read()
-          cv2.imshow('Recording', frame)
+      self.gesture_counts = self.df.gesture.value_counts().to_dict() if self.df.columns.to_list != [] else {}
+    else:
+      print(f'Creating file {self.output_dir}.csv...', end=' ')
+      self.csv_file =  open(f'{output_dir}.csv', 'a') 
+      self.csv_file.write('gesture;image\n')
+      self.gesture_counts = {}
+      print('Done.')
 
-          key = cv2.waitKey(1)
-          if key != -1: 
-            key = chr(key)
-            if key in self.keys_dict:
-              self.capture_gesture(self.keys_dict[key])
-              self.iid += 1
-              print(self.df.gesture.value_counts())
 
-            elif key == 'q': # quit program
-              print('Quitting...')
-              self.shutdown()
 
-        except(KeyboardInterrupt):
-          self.shutdown()
+  def record_save_images(self):
+
+    while self.cap.isOpened():
+      try:
+        _, frame = self.cap.read()
+        cv2.imshow('Recording', frame)
+
+        key = cv2.waitKey(1)
+        if key != -1: 
+          key = chr(key)
+          if key in self.keys_dict:
+            self.capture_gesture(self.keys_dict[key])
+            self.iid += 1
+            self.add_print_gesture_count(self.keys_dict[key])
+            
+          elif key == 'q': # quit program
+            print('Quitting...')
+            self.shutdown()
+
+      except(KeyboardInterrupt):
+        self.shutdown()
 
   def capture_gesture(self, gesture_name):
       print(f'Capturing {gesture_name} gesture')
@@ -96,6 +109,14 @@ class Data_Collector():
       file_name += '.png'
       cv2.imwrite(join(self.output_dir, file_name),  frame)
       self.csv_file.write(f'{gesture_name};{file_name}\n')
+
+  def add_print_gesture_count(self, gesture_name):
+    if gesture_name in self.gesture_counts:
+      self.gesture_counts[gesture_name] += 1
+    else:
+      self.gesture_counts[gesture_name] = 1
+
+    print(self.gesture_counts)
 
   def shutdown(self):
     self.csv_file.close()
