@@ -52,7 +52,7 @@ class Data_Collector():
 
   def create_out_dir(self):
     if exists(self.output_dir):
-      cont = input(f'{self.output_dir} already exists. Continue and append? y/n: ')
+      cont = input(f'{self.output_dir} directory already exists. Continue and append? y/n: ')
       if cont.strip().lower() != 'y':
         exit()
     else:
@@ -61,13 +61,13 @@ class Data_Collector():
       print('Done.')
 
   def create_csv_file(self):
-    if exists(f'{self.output_dir}.csv)'):
+    if exists(f'{self.output_dir}.csv'):
       cont = input(f'{self.output_dir}.csv already exists. Continue and append? y/n: ')
       if cont.strip().lower() != 'y':
         exit()
       self.csv_file =  open(f'{output_dir}.csv', 'a') 
       self.df = pd.read_csv(f'{output_dir}.csv', sep=';')
-      self.gesture_counts = self.df.gesture.value_counts().to_dict() if self.df.columns.to_list != [] else {}
+      self.gesture_counts = self.df.gesture.value_counts().to_dict() 
     else:
       print(f'Creating file {self.output_dir}.csv...', end=' ')
       self.csv_file =  open(f'{output_dir}.csv', 'a') 
@@ -75,10 +75,7 @@ class Data_Collector():
       self.gesture_counts = {}
       print('Done.')
 
-
-
   def record_save_images(self):
-
     while self.cap.isOpened():
       try:
         _, frame = self.cap.read()
