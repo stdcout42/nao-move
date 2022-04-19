@@ -85,3 +85,9 @@ Authors: Henny Admoni, Maya Cakmak
 1. The capturing script was not behaving as I was expecting. Wrote a new one. Need to acquire new data. This will probably take some time but I will a subset of the classes.
 2. Will also create a new classifier for gestures.
 3. Collected (webcam) pictures for up, down, left, right (for now).
+
+## April 14-18
+Been busy with setting up a new computer, celebrating Easter but also been working on the hand gesture classifier. 
+1. Wrote a new image collecting script
+2. Tested the images on classifiers derived through transferlearning (EfficientNet). The preliminary results were underwhelming. On a 4 categorical classifier (4 gestures), with images that have various backgrounds the classifier performs <= 70% accuracy. Most likely this has to do with the images being non cropped (but perhaps also of llow quality due to my webcam). Seems like there is no way around and MediaPipe has to be involved in the pipeline for the landmark detection, then feed this to another classifier which classifies the gestures. Will work on this today. Also have a new webcam coming in tonight.
+
