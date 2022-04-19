@@ -86,8 +86,13 @@ Authors: Henny Admoni, Maya Cakmak
 2. Will also create a new classifier for gestures.
 3. Collected (webcam) pictures for up, down, left, right (for now).
 
-## April 14-18
+## April 14-18th
 Been busy with setting up a new computer, celebrating Easter but also been working on the hand gesture classifier. 
 1. Wrote a new image collecting script
 2. Tested the images on classifiers derived through transferlearning (EfficientNet). The preliminary results were underwhelming. On a 4 categorical classifier (4 gestures), with images that have various backgrounds the classifier performs <= 70% accuracy. Most likely this has to do with the images being non cropped (but perhaps also of llow quality due to my webcam). Seems like there is no way around and MediaPipe has to be involved in the pipeline for the landmark detection, then feed this to another classifier which classifies the gestures. Will work on this today. Also have a new webcam coming in tonight.
+
+## April 19th
+1. Luckily, I found a repository that does exactly what is required (mediapipe hand recognition + gesture classification), this saves me a lot of time and work. 
+2. The preliminary results are very promising. Next will be feeding the gestures to the pybullet arm.
+3. Also, I want to convert everything to ROS2... Will have to see what Dr. Baraka thinks.
 
