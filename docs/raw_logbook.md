@@ -102,5 +102,5 @@ Been busy with setting up a new computer, celebrating Easter but also been worki
   - Takeaways:
     - This work is very relevant to the project I'm working on: Perform a single demonstration, and adjust the demonstration through feedback.
 ## April 20th 
-1. "Finished" gesture recognition classifier
+1. "Finished" gesture recognition classifier (95% accuracy)
 2. Starting on ROS2 design
