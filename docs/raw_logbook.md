@@ -95,4 +95,12 @@ Been busy with setting up a new computer, celebrating Easter but also been worki
 1. Luckily, I found a repository that does exactly what is required (mediapipe hand recognition + gesture classification), this saves me a lot of time and work. 
 2. The preliminary results are very promising. Next will be feeding the gestures to the pybullet arm.
 3. Also, I want to convert everything to ROS2... Will have to see what Dr. Baraka thinks.
-
+4. Read: _Eye-Hand Behavior in Human-Robot Shared Manipulation_
+  - Take-aways:
+    - Eye gaze reveals trajectories (monitoring and planning)
+5. Read: _Robot programming by Demonstration with Interactive Action Visualizations_
+  - Takeaways:
+    - This work is very relevant to the project I'm working on: Perform a single demonstration, and adjust the demonstration through feedback.
+## April 20th 
+1. "Finished" gesture recognition classifier
+2. Starting on ROS2 design
