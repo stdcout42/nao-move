@@ -21,3 +21,11 @@ Helper file to record and save training/validation/test images
 - Keypoints are fed to a (regressino) neural network to classify hand gestures
 
 The library is slightly modified to be able to record more class captures as well as to able to detect more gestures (thus the neural network's output layer is modified).
+
+Currently, the following six gestures are classified:
+- fist
+- open hand
+- up
+- down
+- left 
+- right
