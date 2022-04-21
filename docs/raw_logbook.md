@@ -104,3 +104,11 @@ Been busy with setting up a new computer, celebrating Easter but also been worki
 ## April 20th 
 1. "Finished" gesture recognition classifier (95% accuracy)
 2. Starting on ROS2 design
+
+## Meeting April 21st
+- Write down similarities vs. differences for the papers read
+- Check robustness of gesture classification and make more robust if necessary
+- Add depth to gesture demonstration (relative) 
+- Set up ROS2 + PyBullet + all inputs
+- Test with friends
+
