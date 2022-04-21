@@ -14,7 +14,8 @@
   - **Python3** support (only Ros(1) Noetic supports python3) - pretty big since python2 is not supported anymore
   - Much better API layering 
     - One `rcl` library which interacts with each `rclpy` `rclcpp`, which provide the bindings to the `rcl` library. This means that the CPP and PY libraries are much more similar. Moreover, it will be easier to create new languages that interact with `rcl`
-  [ros1 vs ros2 API](ros_api.png "ROS1 vs ROS2 API")
+
+  ![ROS1 vs ROS2 API](ros_api.png "ROS1 vs ROS2 API")
   - ROS2 will be the industry standard for ROS usage. It is conventionalized in many ways, from node structure to launch structure
   - Rosmaster is gone. Each node can talk to any other node without having to communicate through rosmaster first
   - ROS2 provides components: allows multiple nodes (called _components_) from a single executable
