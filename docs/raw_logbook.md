@@ -112,3 +112,5 @@ Been busy with setting up a new computer, celebrating Easter but also been worki
 - Set up ROS2 + PyBullet + all inputs
 - Test with friends
 
+## April 21st
+Today my focus will be on getting PyBullet and ROS2 up and running.

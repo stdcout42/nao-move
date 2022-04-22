@@ -31,3 +31,15 @@ Currently, the following six gestures are classified:
 - right
 
 ![Demo of gestures](gestures_demo.gif "Demo of gestures")
+
+## ROS2 architecture
+### Nodes
+A node for each purpose.
+#### Arm control
+- Node that listens to gesture + audio + coordinates and moves the arms accordingly
+#### Gesture (and coordinates) talker
+- Node that transmits gestures as well as coordinates (since coordinates are derived from the gesture coordinates) to Arm Control
+#### Voice talker
+- Node that transmits keywords recognized by the speech recognizer to Arm Control
+
+
