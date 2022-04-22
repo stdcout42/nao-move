@@ -113,4 +113,7 @@ Been busy with setting up a new computer, celebrating Easter but also been worki
 - Test with friends
 
 ## April 21st
-Today my focus will be on getting PyBullet and ROS2 up and running.
+Today my focus will be on getting PyBullet and ROS2 up and running. This consists of:
+- Understanding PyBullet better (URDF/joints etc)
+- Creating ROS2 architecture
+- Loading Robot Arm and replicating behavior
