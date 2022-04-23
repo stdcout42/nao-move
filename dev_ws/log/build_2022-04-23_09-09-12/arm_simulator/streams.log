@@ -1,0 +1,35 @@
+[0.945s] Invoking command in '/home/sam/nao-move/dev_ws/src/arm_simulator': PYTHONPATH=/home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/arm_simulator build --build-base /home/sam/nao-move/dev_ws/build/arm_simulator/build install --prefix /home/sam/nao-move/dev_ws/install/arm_simulator --record /home/sam/nao-move/dev_ws/build/arm_simulator/install.log --single-version-externally-managed
+[1.113s] running egg_info
+[1.113s] writing ../../build/arm_simulator/arm_simulator.egg-info/PKG-INFO
+[1.126s] writing dependency_links to ../../build/arm_simulator/arm_simulator.egg-info/dependency_links.txt
+[1.126s] writing entry points to ../../build/arm_simulator/arm_simulator.egg-info/entry_points.txt
+[1.126s] writing requirements to ../../build/arm_simulator/arm_simulator.egg-info/requires.txt
+[1.126s] writing top-level names to ../../build/arm_simulator/arm_simulator.egg-info/top_level.txt
+[1.202s] reading manifest file '../../build/arm_simulator/arm_simulator.egg-info/SOURCES.txt'
+[1.222s] writing manifest file '../../build/arm_simulator/arm_simulator.egg-info/SOURCES.txt'
+[1.222s] running build
+[1.222s] running build_py
+[1.223s] creating /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model
+[1.223s] copying arm_simulator/model/__init__.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model
+[1.238s] creating /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils
+[1.238s] copying arm_simulator/utils/__init__.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils
+[1.246s] copying arm_simulator/utils/cvfpscalc.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils
+[1.247s] running install
+[1.248s] running install_lib
+[1.249s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils
+[1.249s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils
+[1.249s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils/cvfpscalc.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils
+[1.249s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model
+[1.249s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model
+[1.249s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils/__init__.py to __init__.cpython-38.pyc
+[1.250s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils/cvfpscalc.py to cvfpscalc.cpython-38.pyc
+[1.251s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/__init__.py to __init__.cpython-38.pyc
+[1.251s] running install_data
+[1.261s] running install_egg_info
+[1.262s] removing '/home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator-0.0.0-py3.8.egg-info' (and everything under it)
+[1.262s] Copying ../../build/arm_simulator/arm_simulator.egg-info to /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator-0.0.0-py3.8.egg-info
+[1.263s] running install_scripts
+[1.275s] Installing gesture_talker script to /home/sam/nao-move/dev_ws/install/arm_simulator/lib/arm_simulator
+[1.275s] Installing sim_listener script to /home/sam/nao-move/dev_ws/install/arm_simulator/lib/arm_simulator
+[1.275s] writing list of installed files to '/home/sam/nao-move/dev_ws/build/arm_simulator/install.log'
+[1.290s] Invoked command in '/home/sam/nao-move/dev_ws/src/arm_simulator' returned '0': PYTHONPATH=/home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/arm_simulator build --build-base /home/sam/nao-move/dev_ws/build/arm_simulator/build install --prefix /home/sam/nao-move/dev_ws/install/arm_simulator --record /home/sam/nao-move/dev_ws/build/arm_simulator/install.log --single-version-externally-managed

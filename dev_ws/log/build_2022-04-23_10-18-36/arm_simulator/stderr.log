@@ -1,0 +1,5 @@
+  File "/home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/gesture_publisher.py", line 48
+    min_detection_confidence=self.min_detection_confidence,
+    ^
+SyntaxError: invalid syntax
+

@@ -1,0 +1,70 @@
+[0.496s] Invoking command in '/home/sam/nao-move/dev_ws/src/arm_simulator': PYTHONPATH=/home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/arm_simulator build --build-base /home/sam/nao-move/dev_ws/build/arm_simulator/build install --prefix /home/sam/nao-move/dev_ws/install/arm_simulator --record /home/sam/nao-move/dev_ws/build/arm_simulator/install.log --single-version-externally-managed
+[0.662s] running egg_info
+[0.663s] writing ../../build/arm_simulator/arm_simulator.egg-info/PKG-INFO
+[0.663s] writing dependency_links to ../../build/arm_simulator/arm_simulator.egg-info/dependency_links.txt
+[0.663s] writing entry points to ../../build/arm_simulator/arm_simulator.egg-info/entry_points.txt
+[0.663s] writing requirements to ../../build/arm_simulator/arm_simulator.egg-info/requires.txt
+[0.663s] writing top-level names to ../../build/arm_simulator/arm_simulator.egg-info/top_level.txt
+[0.691s] reading manifest file '../../build/arm_simulator/arm_simulator.egg-info/SOURCES.txt'
+[0.692s] writing manifest file '../../build/arm_simulator/arm_simulator.egg-info/SOURCES.txt'
+[0.692s] running build
+[0.692s] running build_py
+[0.692s] copying arm_simulator/__init__.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator
+[0.692s] creating /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/keypoint_classifier
+[0.692s] copying arm_simulator/keypoint_classifier/__init__.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/keypoint_classifier
+[0.692s] copying arm_simulator/keypoint_classifier/keypoint_classifier.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/keypoint_classifier
+[0.693s] creating /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/point_history_classifier
+[0.693s] copying arm_simulator/point_history_classifier/__init__.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/point_history_classifier
+[0.693s] copying arm_simulator/point_history_classifier/point_history_classifier.py -> /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/point_history_classifier
+[0.693s] running install
+[0.694s] running install_lib
+[0.694s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator
+[0.694s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/sim_subscriber.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator
+[0.694s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils
+[0.694s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/utils/cvfpscalc.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator
+[0.695s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/keypoint_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/keypoint_classifier/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/keypoint_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/keypoint_classifier/keypoint_classifier.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/keypoint_classifier
+[0.695s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/point_history_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/point_history_classifier/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/point_history_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/point_history_classifier/point_history_classifier.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/point_history_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/sim_listener.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/gesture_publisher.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator
+[0.695s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model
+[0.695s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/keypoint_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model/keypoint_classifier/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/keypoint_classifier
+[0.695s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model/keypoint_classifier/keypoint_classifier.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/keypoint_classifier
+[0.695s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/point_history_classifier
+[0.696s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model/point_history_classifier/__init__.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/point_history_classifier
+[0.696s] copying /home/sam/nao-move/dev_ws/build/arm_simulator/build/lib/arm_simulator/model/point_history_classifier/point_history_classifier.py -> /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/point_history_classifier
+[0.696s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/sim_subscriber.py to sim_subscriber.cpython-38.pyc
+[0.697s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils/__init__.py to __init__.cpython-38.pyc
+[0.697s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/utils/cvfpscalc.py to cvfpscalc.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/__init__.py to __init__.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/keypoint_classifier/__init__.py to __init__.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/keypoint_classifier/keypoint_classifier.py to keypoint_classifier.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/point_history_classifier/__init__.py to __init__.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/point_history_classifier/point_history_classifier.py to point_history_classifier.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/sim_listener.py to sim_listener.cpython-38.pyc
+[0.698s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/gesture_publisher.py to gesture_publisher.cpython-38.pyc
+[0.699s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/__init__.py to __init__.cpython-38.pyc
+[0.699s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/keypoint_classifier/__init__.py to __init__.cpython-38.pyc
+[0.699s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/keypoint_classifier/keypoint_classifier.py to keypoint_classifier.cpython-38.pyc
+[0.699s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/point_history_classifier/__init__.py to __init__.cpython-38.pyc
+[0.699s] byte-compiling /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator/model/point_history_classifier/point_history_classifier.py to point_history_classifier.cpython-38.pyc
+[0.700s] running install_data
+[0.700s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/share/ament_index
+[0.700s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/share/ament_index/resource_index
+[0.700s] creating /home/sam/nao-move/dev_ws/install/arm_simulator/share/ament_index/resource_index/packages
+[0.700s] copying resource/arm_simulator -> /home/sam/nao-move/dev_ws/install/arm_simulator/share/ament_index/resource_index/packages
+[0.700s] copying package.xml -> /home/sam/nao-move/dev_ws/install/arm_simulator/share/arm_simulator
+[0.700s] running install_egg_info
+[0.701s] Copying ../../build/arm_simulator/arm_simulator.egg-info to /home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages/arm_simulator-0.0.0-py3.8.egg-info
+[0.702s] running install_scripts
+[0.714s] Installing gesture_talker script to /home/sam/nao-move/dev_ws/install/arm_simulator/lib/arm_simulator
+[0.714s] Installing sim_listener script to /home/sam/nao-move/dev_ws/install/arm_simulator/lib/arm_simulator
+[0.715s] writing list of installed files to '/home/sam/nao-move/dev_ws/build/arm_simulator/install.log'
+[0.730s] Invoked command in '/home/sam/nao-move/dev_ws/src/arm_simulator' returned '0': PYTHONPATH=/home/sam/nao-move/dev_ws/install/arm_simulator/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/arm_simulator build --build-base /home/sam/nao-move/dev_ws/build/arm_simulator/build install --prefix /home/sam/nao-move/dev_ws/install/arm_simulator --record /home/sam/nao-move/dev_ws/build/arm_simulator/install.log --single-version-externally-managed

@@ -117,3 +117,11 @@ Today my focus will be on getting PyBullet and ROS2 up and running. This consist
 - Understanding PyBullet better (URDF/joints etc)
 - Creating ROS2 architecture
 - Loading Robot Arm and replicating behavior
+
+## April 22nd
+- Started with ROS2 architecture for simulation and implementation of 
+  - `gesture_publisher.py`: responsible for classifiying gestures and publishing demonstration coordinates
+  - `sim_subscriber.py`: responsible for listening to gesture commands, coordinates and voice commands
+
+## April 23rd
+- Goal for this weekend is to finish ROS2 + PyBullet simulation control for gesture/movement/voice
