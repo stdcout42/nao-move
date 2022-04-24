@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'sim_listener = arm_simulator.sim_subscriber:main',
             'gesture_talker = arm_simulator.gesture_publisher:main',
+            'speech_talker = arm_simulator.speech_publisher:main',
         ],
     },
 )

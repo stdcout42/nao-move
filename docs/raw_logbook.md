@@ -125,3 +125,11 @@ Today my focus will be on getting PyBullet and ROS2 up and running. This consist
 
 ## April 23rd
 - Goal for this weekend is to finish ROS2 + PyBullet simulation control for gesture/movement/voice
+
+## April 24th
+- Got coordinate communication working (by making a fist)
+- Implementing voice recog with VOSK
+  - VOSK installation via pip gives error: "portaudio.h", fixed with `sudo apt install portaudio19-dev python3-pyaudio` on Ubuntu 20.04. 
+- Voice recognition complete
+- Gesture recognition complete
+In summary, so far, all communcation is working (voice, gesture, coordination). The actual response to this feedback has not been implemented yet.

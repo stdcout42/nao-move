@@ -61,15 +61,27 @@ velocityGains = [1] * num_controlled_joints
 class SimSubscriber(Node):
   def __init__(self):
     super().__init__('sim_subscriber')
-    self.subscription = self.create_subscription(
+    self.coords_subscription = self.create_subscription(
         String, 
         'movement_coords', 
-        self.movement_callback, 
+        self.coords_callback, 
         10)
-    self.subscription # prevent unused variable warning
+    self.coords_subscription # prevent unused variable warning
+    self.gestures_subscription = self.create_subscription(
+        String, 'gestures', self.gestures_callback, 10)
+    self.gestures_subscription
+    self.speech_subscription = self.create_subscription(
+        String,
+        'speech',
+        self.speech_callback,
+        10)
+    self.speech_subscription
 
-  def movement_callback(self, msg):
-    self.get_logger().info('I heard: "%s"' % msg.data)
+  def gestures_callback(self, msg):
+    self.get_logger().info('Incoming gesture: "%s"' % msg.data)
+
+  def coords_callback(self, msg):
+    #self.get_logger().info('I heard: "%s"' % msg.data)
     pos = msg.data.split(',')
     type(pos[0])
     arrPos = [float(pos[0]),float(pos[1]),float(pos[2])]
@@ -90,6 +102,9 @@ class SimSubscriber(Node):
                                 forces=forces,
                                 positionGains=positionGains,
                                 velocityGains=velocityGains)
+
+  def speech_callback(self, msg):
+    self.get_logger().info('I heard: "%s"' % msg.data)
 
 
 def main(args=None):

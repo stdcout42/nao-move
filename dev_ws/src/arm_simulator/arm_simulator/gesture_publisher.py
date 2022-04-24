@@ -140,6 +140,9 @@ class GesturePublisher(Node):
           # Drawing part
           debug_image = self.draw_bounding_rect(self.use_brect, debug_image, brect)
           debug_image = self.draw_landmarks(debug_image, landmark_list)
+          msg = String()
+          msg.data = self.keypoint_classifier_labels[hand_sign_id]
+          self.gesture_publisher.publish(msg)
           debug_image = self.draw_info_text(
              debug_image,
              brect,
@@ -527,6 +530,7 @@ class GesturePublisher(Node):
       self.init_cam()
       self.init_mp_hands()
       self.coords_publisher = self.create_publisher(String, 'movement_coords', 10)
+      self.gesture_publisher = self.create_publisher(String, 'gestures', 10) 
 
       self.start_classifying_stream()
 
