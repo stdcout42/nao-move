@@ -26,8 +26,8 @@ class GesturePublisher(Node):
 
   ## mp_hands settings 
   use_static_image_mode = True
-  min_detection_confidence = 0.7
-  min_tracking_confidence = 0.5
+  min_detection_confidence = 0.35
+  min_tracking_confidence = 0.5 
   use_brect = True
   max_num_hands = 2
   
@@ -120,7 +120,7 @@ class GesturePublisher(Node):
 
           # Hand sign classification
           hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
-          if hand_sign_id == 'nope':  # Point gesture
+          if hand_sign_id == 0:  # Fist 
               self.point_history.append(landmark_list[8])
           else:
               self.point_history.append([0, 0])
@@ -148,7 +148,6 @@ class GesturePublisher(Node):
              self.point_history_classifier_labels[most_common_fg_id[0][0]],
          )
       else: self.point_history.append([0, 0])
-
       debug_image = self.draw_point_history(debug_image, self.point_history)
       debug_image = self.draw_info(debug_image, fps, self.mode, number)
  
@@ -254,7 +253,6 @@ class GesturePublisher(Node):
     # Convert to a one-dimensional list
     temp_point_history = list(
         itertools.chain.from_iterable(temp_point_history))
-
     return temp_point_history
 
 
@@ -262,12 +260,12 @@ class GesturePublisher(Node):
     if mode == 0:
         pass
     if mode == 1 and (0 <= number <= 9):
-        csv_path = 'model/keypoint_classifier/keypoint.csv'
+        csv_path = 'src/arm_simulator/arm_simulator/keypoint_classifier/keypoint.csv'
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *landmark_list])
     if mode == 2 and (0 <= number <= 9):
-        csv_path = 'model/point_history_classifier/point_history.csv'
+        csv_path = 'src/arm_simulator/arm_simulator/point_history_classifier/point_history.csv'
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *point_history_list])
@@ -495,6 +493,12 @@ class GesturePublisher(Node):
   def draw_point_history(self, image, point_history):
     for index, point in enumerate(point_history):
         if point[0] != 0 and point[1] != 0:
+            #print(f'{point[0]} {point[1]}') 
+            coords = adjustScale(str(point[0]) + ",-0.3," + str(point[1]))
+            msg = String()
+            msg.data = coords
+            print(f'coords: {coords}')
+            self.coords_publisher.publish(msg)
             cv.circle(image, (point[0], point[1]), 1 + int(index / 2),
                       (152, 251, 152), 2)
 
@@ -520,12 +524,25 @@ class GesturePublisher(Node):
 
   def __init__(self):
       super().__init__('gesture_publisher')
-      self.coords_publisher = self.create_publisher(String, 'movement_coords', 10)
       self.init_cam()
       self.init_mp_hands()
+      self.coords_publisher = self.create_publisher(String, 'movement_coords', 10)
+
       self.start_classifying_stream()
 
 
+def adjustScale(coords, scale = 1.0,translate = 0):           #y needs to be inverted
+    coords = coords.split(',')
+    x = float(coords[0])
+    z = float(coords[2])
+    # x = x*scale + translate
+    # z = z*scale + translate
+    x -= 300
+    z = 450 - z #correcting for up and down
+    #z -= 225
+    x *= 2.0/600
+    z *= 1.0/450
+    return (str(x)+','+coords[1]+','+str(z))
 
 
 def main(args=None):
