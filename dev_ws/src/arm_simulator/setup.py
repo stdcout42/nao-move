@@ -1,14 +1,14 @@
 from setuptools import setup
 
 package_name = 'arm_simulator'
-keypoint_classifier = 'arm_simulator/keypoint_classifier'
-point_history_classifier = 'arm_simulator/point_history_classifier'
 utils = 'arm_simulator/utils'
+keypoint_classifier= 'arm_simulator/utils/keypoint_classifier'
+point_history_classifier = 'arm_simulator/utils/point_history_classifier'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name, keypoint_classifier, point_history_classifier, utils],
+    packages=[package_name, utils, keypoint_classifier, point_history_classifier],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

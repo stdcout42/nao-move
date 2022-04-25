@@ -14,6 +14,10 @@ from math import pi
 import numpy as np
 import csv
 
+"""
+Robot arm simulation set up based on a previous implementation
+by sandbox-kimb-ura(TODO)
+"""
 #pybullet configuration
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())

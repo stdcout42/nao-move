@@ -133,3 +133,9 @@ Today my focus will be on getting PyBullet and ROS2 up and running. This consist
 - Voice recognition complete
 - Gesture recognition complete
 In summary, so far, all communcation is working (voice, gesture, coordination). The actual response to this feedback has not been implemented yet.
+
+## April 25th
+Today's goals:
+- Refractor code - make it more modular, as right now the gesture publisher has 500 locs
+- Implement saving, replaying of gestures on command (voice)
+- Implement feedback tuning
