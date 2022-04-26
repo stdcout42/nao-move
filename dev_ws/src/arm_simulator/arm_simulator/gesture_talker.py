@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from geometry_msgs.msg import Vector3
 from .utils.cvutils import CvUtils
 """
 Classification of gestures and point history based on 
@@ -17,7 +18,7 @@ class GesturePublisher(Node):
   def __init__(self):
     super().__init__('gesture_publisher')
     self.cvUtils = CvUtils()
-    self.coords_publisher = self.create_publisher(String, 'movement_coords', 10)
+    self.coords_publisher = self.create_publisher(Vector3, 'movement_coords', 10)
     self.gesture_publisher = self.create_publisher(String, 'gestures', 10) 
     self.start_classifying_stream()
 
@@ -46,9 +47,14 @@ class GesturePublisher(Node):
     coords = self.cvUtils.last_coords
     if coords != []:
       coords = adjustScale(coords)
-      msg = String()
-      msg.data = f'{str(coords[0])},{str(coords[1])},{str(coords[2])}'
-      self.coords_publisher.publish(msg)
+      coords_vec = Vector3()
+      coords_vec.x = coords[0]
+      coords_vec.y = coords[1]
+      coords_vec.z = coords[2]
+      self.coords_publisher.publish(coords_vec)
+      #msg = String()
+      #msg.data = f'{str(coords[0])},{str(coords[1])},{str(coords[2])}'
+      #self.coords_publisher.publish()
       #self.get_logger().info('Publishing "%s"' % msg.data)
 
 def adjustScale(coords):           #y needs to be inverted

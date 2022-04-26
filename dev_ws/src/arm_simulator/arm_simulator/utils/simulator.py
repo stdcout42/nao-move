@@ -8,7 +8,6 @@ from time import sleep
 import math
 from math import pi
 import numpy as np
-import csv
 
 """
 Robot arm simulation set up based on a previous implementation

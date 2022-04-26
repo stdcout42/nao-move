@@ -33,5 +33,5 @@
 #### What I've been doing
 - Set up ROS2 implementation of the simulator
 - Modularized code-base and tried to create a proper architecture for scaling later
-- 
+- What about playback speed?
 
