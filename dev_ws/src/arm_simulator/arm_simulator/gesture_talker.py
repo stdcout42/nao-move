@@ -40,7 +40,7 @@ class GesturePublisher(Node):
       msg = String()
       msg.data = gesture 
       self.gesture_publisher.publish(msg)
-      self.get_logger().info('Publishing "%s"' % msg.data)
+      #self.get_logger().info('Publishing "%s"' % msg.data)
 
   def publish_coords(self):
     coords = self.cvUtils.last_coords
@@ -49,7 +49,7 @@ class GesturePublisher(Node):
       msg = String()
       msg.data = f'{str(coords[0])},{str(coords[1])},{str(coords[2])}'
       self.coords_publisher.publish(msg)
-      self.get_logger().info('Publishing "%s"' % msg.data)
+      #self.get_logger().info('Publishing "%s"' % msg.data)
 
 def adjustScale(coords):           #y needs to be inverted
     x = coords[0] - 300
@@ -61,7 +61,7 @@ def main(args=None):
     rclpy.init(args=args)
     gesture_publisher = GesturePublisher()
     rclpy.spin(gesture_publisher)
-    minimal_publisher.destroy_node()
+    gesture_publisher.destroy_node()
     rclpy.shutdown()
 
 

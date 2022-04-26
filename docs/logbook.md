@@ -26,3 +26,12 @@
 - Read articles _Eye-Hand Behavior in Human-Robot Shared Manipulation_, _Robot programming by Demonstration with Interactive Action Visualizations_
   - The latter is very relevant to what we're doing
 
+### Week 4
+#### Questions
+- I do not really understand the arm configurations (see arm simulator package, file: `utils/simulator.py`). Where can I learn / understand these things better? How were they derived?
+
+#### What I've been doing
+- Set up ROS2 implementation of the simulator
+- Modularized code-base and tried to create a proper architecture for scaling later
+- 
+

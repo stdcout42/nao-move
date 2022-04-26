@@ -15,16 +15,19 @@ class SpeechPublisher(Node):
     stream.start_stream()
 
     while rclpy.ok():
-      data = stream.read(4096)
-      if recognizer.AcceptWaveform(data):
-        res = recognizer.Result()
-        js = json.loads(res)
-        first_word = js['text'].split(' ')[0]
-        if first_word != "":
-          print(first_word)
-          msg = String()
-          msg.data = first_word
-          self.publisher_.publish(msg)
+      try:
+        data = stream.read(4096)
+        if recognizer.AcceptWaveform(data):
+          res = recognizer.Result()
+          js = json.loads(res)
+          first_word = js['text'].split(' ')[0]
+          if first_word != "":
+            print(first_word)
+            msg = String()
+            msg.data = first_word
+            self.publisher_.publish(msg)
+      except KeyboardInterrupt:
+        exit()
 
 
   def __init__(self):
