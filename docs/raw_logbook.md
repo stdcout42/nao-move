@@ -139,3 +139,6 @@ Today's goals:
 - Refractor code - make it more modular, as right now the gesture publisher has 500 locs
 - Implement saving, replaying of gestures on command (voice)
 - Implement feedback tuning
+
+## April 26th
+Was unable to complete (2) and (3) yesterday. Today, I will focus on completing those. However, first, a launch file will be created to launch all the nodes as it's quite tedious to run each node individually.

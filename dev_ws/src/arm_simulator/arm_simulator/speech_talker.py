@@ -28,7 +28,7 @@ class SpeechPublisher(Node):
 
 
   def __init__(self):
-    super().__init__('minimal_publisher')
+    super().__init__('speech_talker')
     self.publisher_ = self.create_publisher(String, 'speech', 10)
     self.msg = String()
     self.classify_stream()

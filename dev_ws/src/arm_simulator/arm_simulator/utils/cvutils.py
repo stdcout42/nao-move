@@ -44,7 +44,7 @@ class CvUtils(object):
       cap_height=540,
       use_static_image_mode = True,
       min_detection_confidence = 0.35,
-      min_tracking_confidence = 0.5, 
+      min_tracking_confidence = 0.3, 
       use_brect = True, 
       max_num_hands = 2):
     self.cap_device = cap_device
