@@ -142,3 +142,5 @@ Today's goals:
 
 ## April 26th
 Was unable to complete (2) and (3) yesterday. Today, I will focus on completing those. However, first, a launch file will be created to launch all the nodes as it's quite tedious to run each node individually.
+- Saving and replaying of demonstration implemented (using voice commands)
+- Feedback tuning partly implemented
