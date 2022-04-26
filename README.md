@@ -35,11 +35,16 @@ Currently, the following six gestures are classified:
 ## ROS2 architecture
 ### Nodes
 A node for each purpose.
-#### Arm control
+#### Simulation listener (`sim_listener.py`)
 - Node that listens to gesture + audio + coordinates and moves the arms accordingly
-#### Gesture (and coordinates) talker
+- TODO: When the node hears the 'record' keyword, it will record the movements starting the first fist gesture capture
+and ending when it sees the stop (open hand) gesture or when the keyword 'stop' is heard.
+- TODO: When the there exists a saved trajectory, the trajectory can be played back when the 'repeat' keyword is heard.
+- TODO: A saved trajectory can be adjusted through feedback with the keywords 'big', 'small', 'left', 'right', 'up', 'down'
+#### Gesture (and coordinates) talker (`gesture_talker.py`)
 - Node that transmits gestures as well as coordinates (since coordinates are derived from the gesture coordinates) to Arm Control
-#### Voice talker
+#### Speech talker (`speech_talker.py`)
 - Node that transmits keywords recognized by the speech recognizer to Arm Control
+
 
 
