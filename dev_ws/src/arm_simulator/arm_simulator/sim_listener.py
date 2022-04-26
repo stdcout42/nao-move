@@ -14,6 +14,15 @@ class Mode(AutoName):
   IMITATE = auto()
   RECORD = auto()
   REPLAY = auto()
+  FEEDBACK = auto()
+
+class Feedback(AutoName):
+  UP = auto()
+  DOWN = auto()
+  LEFT = auto()
+  RIGHT = auto()
+  SMALLER = auto()
+  BIGGER = auto()
 
 class SimSubscriber(Node):
   def __init__(self):
@@ -23,8 +32,8 @@ class SimSubscriber(Node):
     self.mode = Mode.IMITATE
     self.replay_speed = 10
     self.replay_ratio = 1.0 / self.replay_speed
-
     self.trajectory = []
+    self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
@@ -57,29 +66,44 @@ class SimSubscriber(Node):
         self.trajectory.append(msg)
 
   def speech_callback(self, msg):
-    #self.get_logger().info('Incoming speech: "%s"' % msg.data)
+    self.get_logger().info('Incoming speech: "%s"' % msg.data)
     self.last_speech_keyword = msg.data
-    self.set_mode_byspeech()
+    self.process_speech()
 
-  def set_mode_byspeech(self):
+  # TODO: Catch all edge cases where certain mode changes are not allowed
+  def process_speech(self):
     if self.last_speech_keyword == 'record':
-      self.get_logger().info(f'Mode set to RECORD')
       self.trajectory = []
-      self.mode = Mode.RECORD 
+      self.set_mode(Mode.RECORD)
     elif self.last_speech_keyword == 'stop':
-      self.get_logger().info(f'Mode set to IMITATE')
-      self.mode = Mode.IMITATE
+      self.set_mode(Mode.IMITATE)
     elif self.last_speech_keyword == 'replay':
-      self.mode = Mode.REPLAY
-      self.get_logger().info(f'Mode set to REPLAY')
+      self.set_mode(Mode.REPLAY)
       self.replay_movement()
+    elif self.last_speech_keyword == 'feedback':
+      if self.mode != Mode.RECORD or self.mode != Mode.REPLAY:
+        self.set_mode(Mode.FEEDBACK)
+    elif self.last_speech_keyword in self.feedback_names: 
+      if self.mode == Mode.FEEDBACK:
+        self.move_trajectory(self.last_speech_keyword)
+
+# TODO: Add more feedback commands
+  def move_trajectory(self, keyword):
+    if keyword == 'up':
+      self.trajectory = list(map(lambda v: Vector3(x=v.x, y=v.y, z=v.z+0.1), self.trajectory))
+    self.get_logger().info(f'Modified trajectory: {keyword}')
+    self.set_mode(Mode.IMITATE)
+
+
+  def set_mode(self, mode):
+    self.mode = mode 
+    self.get_logger().info(f'Mode set to {mode.value}')
 
   def replay_movement(self):
     if self.trajectory != []:
       for coord in self.trajectory:
         self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
         time.sleep(self.replay_ratio)
-
       self.get_logger().info(f'Replay complete.')
 
 def main(args=None):
@@ -91,7 +115,6 @@ def main(args=None):
   except KeyboardInterrupt:
     sim_subscriber.destroy_node()
     rclpy.shutdown()
-    
     exit()
 
 
