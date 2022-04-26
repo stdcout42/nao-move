@@ -51,7 +51,6 @@ def main():
     use_static_image_mode = args.use_static_image_mode
     min_detection_confidence = args.min_detection_confidence
     min_tracking_confidence = args.min_tracking_confidence
-
     use_brect = True
 
     # Camera preparation ###############################################################
@@ -61,6 +60,7 @@ def main():
 
     # Model load #############################################################
     mp_hands = mp.solutions.hands
+    print(f'{min_detection_confidence} {min_tracking_confidence}')
     hands = mp_hands.Hands(
         static_image_mode=use_static_image_mode,
         max_num_hands=2,

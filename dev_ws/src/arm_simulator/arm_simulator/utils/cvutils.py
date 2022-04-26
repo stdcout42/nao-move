@@ -42,9 +42,9 @@ class CvUtils(object):
       cap_device=0, 
       cap_width=960, 
       cap_height=540,
-      use_static_image_mode = True,
-      min_detection_confidence = 0.35,
-      min_tracking_confidence = 0.3, 
+      use_static_image_mode = False,
+      min_detection_confidence = 0.7,
+      min_tracking_confidence = 0.5, 
       use_brect = True, 
       max_num_hands = 2):
     self.cap_device = cap_device
@@ -77,7 +77,8 @@ class CvUtils(object):
     self.hands = self.mp_hands.Hands(
         static_image_mode=self.use_static_image_mode,
         max_num_hands=self.max_num_hands,
-        min_detection_confidence=self.min_detection_confidence)
+        min_detection_confidence=self.min_detection_confidence,
+        min_tracking_confidence=self.min_tracking_confidence)
 
   def load_keypoint_classifier(self):
     self.keypoint_classifier = KeyPointClassifier()
@@ -119,8 +120,6 @@ class CvUtils(object):
     image.flags.writeable = False
     results = self.hands.process(image)
     image.flags.writeable = True
-    if results is None:
-      print('results is none')
 
     #  ####################################################################
     if results.multi_hand_landmarks is not None:
@@ -162,11 +161,7 @@ class CvUtils(object):
 
         # Drawing part
         debug_image = self.draw_bounding_rect(self.use_brect, debug_image, brect)
-        #debug_image = self.draw_landmarks(debug_image, landmark_list)
         debug_image = self.draw_landmarks(debug_image, landmark_list)
-       #msg = String()
-       #msg.data = self.keypoint_classifier_labels[hand_sign_id]
-       #self.gesture_publisher.publish(msg)
         debug_image = self.draw_info_text(
            debug_image,
            brect,
@@ -330,13 +325,6 @@ class CvUtils(object):
   def draw_point_history(self, image, point_history):
     for index, point in enumerate(point_history):
       if point[0] != 0 and point[1] != 0:
-
-        #print(f'{point[0]} {point[1]}') 
-        #coords = adjustScale(str(point[0]) + ",-0.3," + str(point[1]))
-       #msg = String()
-       #msg.data = coords
-       #print(f'coords: {coords}')
-       #self.coords_publisher.publish(msg)
        self.last_coords = [point[0], -0.3, point[1]]
        cv.circle(image, (point[0], point[1]), 1 + int(index / 2),
                   (152, 251, 152), 2)
@@ -382,6 +370,8 @@ class CvUtils(object):
               (255, 255, 255), 2)
       cv.line(image, tuple(landmark_point[6]), tuple(landmark_point[7]),
               (0, 0, 0), 6)
+      cv.line(image, tuple(landmark_point[6]), tuple(landmark_point[7]),
+              (255, 255, 255), 2)
       cv.line(image, tuple(landmark_point[7]), tuple(landmark_point[8]),
               (0, 0, 0), 6)
       cv.line(image, tuple(landmark_point[7]), tuple(landmark_point[8]),

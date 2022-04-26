@@ -26,8 +26,6 @@ class GesturePublisher(Node):
     while rclpy.ok() and not stat:
       try:
         stat = self.cvUtils.classify_stream()
-        #print(self.cvUtils.last_gesture)
-        #print(self.cvUtils.last_coords)
         self.publish_gesture()
         self.publish_coords()
       except KeyboardInterrupt:

@@ -26,9 +26,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'sim_listener = arm_simulator.sim_subscriber:main',
-            'gesture_talker = arm_simulator.gesture_publisher:main',
-            'speech_talker = arm_simulator.speech_publisher:main',
+            'sim_listener = arm_simulator.sim_listener:main',
+            'gesture_talker = arm_simulator.gesture_talker:main',
+            'speech_talker = arm_simulator.speech_talker:main',
         ],
     },
 )
