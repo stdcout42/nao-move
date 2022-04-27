@@ -1,18 +1,27 @@
+
+
 # nao-move: implementing multi-modal control on Nao/Pepper robots using ROS
 ## docs
 - [raw logbook](https://github.com/stdcout42/nao-move/blob/main/docs/raw_logbook.md)
 - [summarized logbook](https://github.com/stdcout42/nao-move/blob/main/docs/logbook.md)
 
-
 ## Google Drive
 [Link](https://drive.google.com/drive/folders/15IWhDwY0hzxDpBRG4-ujRWeK-qrg7z2i?usp=sharing)
-
 - results / data folder
     - Robot arm simulator demo [video](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view)
 
-## collect_data.py
-Helper file to record and save training/validation/test images
-- Deprecates with keypoint hand-gesture-recognition-using-mediapipe library
+## Installation
+### Requirements / dependencies
+- [ros2-foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
+- tensorflow (`pip3 install tensorflow`)
+- numpy (`pip3 install numpy`)
+- pyaudio  (`sudo apt install portaudio19-dev python3-pyaudio` `pip3 install pyaudio` on Ubuntu 20.04)
+- vosk (`pip3 install vosk`)
+- TODO: more?
+### Configuration
+- Currently hardcoded to detect webcam from feed 0 (on linux: `/dev/video0`)
+### Run
+From the directory `/nao-move/dev_ws` run `ros2 launch arm_simulator arm_simulator.launch.py`.
 
 ## hand-gesture-recognition-using-mediapipe
 [Link](https://github.com/kinivi/hand-gesture-recognition-mediapipe) - which is a translation of a [repo](https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe) which is in Japanese. 
@@ -45,6 +54,3 @@ and ending when it sees the stop (open hand) gesture or when the keyword 'stop' 
 - Node that transmits gestures as well as coordinates (since coordinates are derived from the gesture coordinates) to Arm Control
 #### Speech talker (`speech_talker.py`)
 - Node that transmits keywords recognized by the speech recognizer to Arm Control
-
-
-
