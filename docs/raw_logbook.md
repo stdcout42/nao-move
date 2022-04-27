@@ -148,3 +148,5 @@ Was unable to complete (2) and (3) yesterday. Today, I will focus on completing 
 ## April 27th
 - Voice rec is a bit weak when there is a background noise... Should I create my own model with limited classes? That might help... But I'm not familiar with voice rec models...
 - Added directional as well as scaling feedback 
+- Added faster + slower feedback
+- Possible TODO: create extra thread for the replay feature - allowing the program to break off the replay if a ''stop' command is heard
