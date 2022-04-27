@@ -23,6 +23,8 @@ class Feedback(AutoName):
   RIGHT = auto()
   SMALLER = auto()
   BIGGER = auto()
+  FASTER = auto()
+  SLOWER = auto()
 
 class SimSubscriber(Node):
   def __init__(self):
@@ -32,6 +34,7 @@ class SimSubscriber(Node):
     self.mode = Mode.IMITATE
     self.replay_speed = 10
     self.replay_ratio = 1.0 / self.replay_speed
+    self.max_replay_speed = 20
     self.trajectory = []
     self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
 
@@ -85,26 +88,28 @@ class SimSubscriber(Node):
         self.set_mode(Mode.FEEDBACK)
     elif self.last_speech_keyword in self.feedback_names: 
       if self.mode == Mode.FEEDBACK:
-        self.move_trajectory(self.last_speech_keyword)
+        self.change_trajectory(self.last_speech_keyword)
 
 # TODO: Add more feedback commands
-  def move_trajectory(self, keyword):
-    dx = 0
-    dy = 0
-    dz = 0
+  def change_trajectory(self, keyword):
+    dx = dy = dz = 0
     c = 1.0
     if keyword == 'up':
       dz = 0.1
-    if keyword == 'down':
+    elif keyword == 'down':
       dz = -0.1
-    if keyword == 'right':
+    elif keyword == 'right':
       dx = 0.1 
-    if keyword == 'left':
+    elif keyword == 'left':
       dx = -0.1
-    if keyword == 'bigger':
+    elif keyword == 'bigger':
       c = 1.1
-    if keyword == 'smaller':
+    elif keyword == 'smaller':
       c = 0.9
+    elif keyword == 'faster':
+      if self.replay_speed < self.max_replay_speed: self.replay_speed += 1
+    elif keyword == 'slower':
+      if self.replay_speed > 1: self.replay_speed -= 1
     self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c+dz), self.trajectory))
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.set_mode(Mode.IMITATE)
@@ -120,6 +125,7 @@ class SimSubscriber(Node):
         self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
         time.sleep(self.replay_ratio)
       self.get_logger().info(f'Replay complete.')
+      self.set_mode(Mode.IMITATE)
 
 def main(args=None):
   rclpy.init(args=args)
