@@ -46,10 +46,10 @@ Currently, the following six gestures are classified:
 A node for each purpose.
 #### Simulation listener (`sim_listener.py`)
 - Node that listens to gesture + audio + coordinates and moves the arms accordingly
-- TODO: When the node hears the 'record' keyword, it will record the movements starting the first fist gesture capture
+- When the node hears the 'record' keyword, it will record the movements starting the first fist gesture capture
 and ending when it sees the stop (open hand) gesture or when the keyword 'stop' is heard.
-- TODO: When the there exists a saved trajectory, the trajectory can be played back when the 'repeat' keyword is heard.
-- TODO: A saved trajectory can be adjusted through feedback with the keywords 'big', 'small', 'left', 'right', 'up', 'down'
+- When the there exists a saved trajectory, the trajectory can be played back when the 'repeat' keyword is heard.
+- Feedback can be given to adjust the saved trajectory. Feedback mode can be entered throught he voice command 'feedback', after which a saved trajectory can be adjusted through feedback with the keywords 'big', 'small', 'left', 'right', 'up', 'down'
 #### Gesture (and coordinates) talker (`gesture_talker.py`)
 - Node that transmits gestures as well as coordinates (since coordinates are derived from the gesture coordinates) to Arm Control
 #### Speech talker (`speech_talker.py`)
