@@ -29,9 +29,10 @@
 ### Week 4
 #### Questions
 - I do not really understand the arm configurations (see arm simulator package, file: `utils/simulator.py`). Where can I learn / understand these things better? How were they derived?
+- What about playback speed?
+- Voice recognition is quite weak when there is a conversation on the background...
 
 #### What I've been doing
 - Set up ROS2 implementation of the simulator
 - Modularized code-base and tried to create a proper architecture for scaling later
-- What about playback speed?
 

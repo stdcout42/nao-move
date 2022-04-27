@@ -144,3 +144,7 @@ Today's goals:
 Was unable to complete (2) and (3) yesterday. Today, I will focus on completing those. However, first, a launch file will be created to launch all the nodes as it's quite tedious to run each node individually.
 - Saving and replaying of demonstration implemented (using voice commands)
 - Feedback tuning partly implemented
+
+## April 27th
+- Voice rec is a bit weak when there is a background noise... Should I create my own model with limited classes? That might help... But I'm not familiar with voice rec models...
+- Added directional as well as scaling feedback 

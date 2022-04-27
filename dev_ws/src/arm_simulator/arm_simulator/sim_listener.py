@@ -89,9 +89,24 @@ class SimSubscriber(Node):
 
 # TODO: Add more feedback commands
   def move_trajectory(self, keyword):
+    dx = 0
+    dy = 0
+    dz = 0
+    c = 1.0
     if keyword == 'up':
-      self.trajectory = list(map(lambda v: Vector3(x=v.x, y=v.y, z=v.z+0.1), self.trajectory))
-    self.get_logger().info(f'Modified trajectory: {keyword}')
+      dz = 0.1
+    if keyword == 'down':
+      dz = -0.1
+    if keyword == 'right':
+      dx = 0.1 
+    if keyword == 'left':
+      dx = -0.1
+    if keyword == 'bigger':
+      c = 1.1
+    if keyword == 'smaller':
+      c = 0.9
+    self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c+dz), self.trajectory))
+    self.get_logger().info(f'Modified trajectory to {keyword}')
     self.set_mode(Mode.IMITATE)
 
 
