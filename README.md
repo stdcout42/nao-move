@@ -1,15 +1,20 @@
 
 
 # nao-move: implementing multi-modal control on Nao/Pepper robots using ROS
-## docs
-- [raw logbook](https://github.com/stdcout42/nao-move/blob/main/docs/raw_logbook.md)
-- [summarized logbook](https://github.com/stdcout42/nao-move/blob/main/docs/logbook.md)
-
 ## Google Drive
 [Link](https://drive.google.com/drive/folders/15IWhDwY0hzxDpBRG4-ujRWeK-qrg7z2i?usp=sharing)
 - results / data folder
     - Robot arm simulator demo [video](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view)
 
+## Directories
+### docs
+Contains logsbooks
+- [raw logbook](https://github.com/stdcout42/nao-move/blob/main/docs/raw_logbook.md)
+- [summarized logbook](https://github.com/stdcout42/nao-move/blob/main/docs/logbook.md)
+### hand-gesture-recognition-using-mediapipe
+The libary for hand gesture recognition (see more detailed explanation below)
+### dev_ws
+The workspace for ROS2 packages. (see ROS2 architecture below)
 ## Installation
 ### Requirements / dependencies
 - [ros2-foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
