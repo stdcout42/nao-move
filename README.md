@@ -22,6 +22,8 @@ The workspace for ROS2 packages. (see ROS2 architecture below)
 - numpy (`pip3 install numpy`)
 - pyaudio  (`sudo apt install portaudio19-dev python3-pyaudio` `pip3 install pyaudio` on Ubuntu 20.04)
 - vosk (`pip3 install vosk`)
+- pynput (`pip3 install pynput`)
+- playsound (`pip3 install playsound`)
 - TODO: more?
 ### Configuration
 - Currently hardcoded to detect webcam from feed 0 (on linux: `/dev/video0`)
