@@ -47,6 +47,7 @@ class CvUtils(object):
       min_tracking_confidence = 0.5, 
       use_brect = True, 
       max_num_hands = 2):
+
     self.cap_device = cap_device
     self.cap_width = cap_width
     self.cap_height = cap_height
@@ -66,7 +67,7 @@ class CvUtils(object):
     self.load_point_history_classifier()
     self.last_gesture = None
     self.last_coords = []
-   
+  
   def init_cam(self): 
     self.cap = cv.VideoCapture(self.cap_device)
     self.cap.set(cv.CAP_PROP_FRAME_WIDTH, self.cap_width)

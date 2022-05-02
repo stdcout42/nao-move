@@ -1,10 +1,15 @@
 import rclpy
 import time
-from enum import Enum, auto
+import threading
+import os
 from rclpy.node import Node
 from std_msgs.msg import String
+from pynput import keyboard
+from playsound import playsound
+from enum import Enum, auto
 from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
+from os.path import join
 
 class AutoName(Enum):
   def _generate_next_value_(name, start, count, last_values):
@@ -26,17 +31,27 @@ class Feedback(AutoName):
   FASTER = auto()
   SLOWER = auto()
 
+class Sound(Enum):
+  NOTIFY = 'notify.wav' 
+  FINISHED = 'finished.wav' 
+  STOP = 'stop.wav'
+
 class SimSubscriber(Node):
+  REPLAY_SPEED = 12
+  REPLAY_RATIO = 1.0 / REPLAY_SPEED
+  MAX_REPLAY_SPEED = 20
+  SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
+
   def __init__(self):
     super().__init__('sim_subscriber')
-    self.create_subscriptions()
-    self.arm_simulator = Simulator()
     self.mode = Mode.IMITATE
-    self.replay_speed = 10
-    self.replay_ratio = 1.0 / self.replay_speed
-    self.max_replay_speed = 20
     self.trajectory = []
     self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
+    self.listener = keyboard.Listener(on_press=self.on_press,
+      on_release=self.on_release)
+    self.listener.start()
+    self.create_subscriptions()
+    self.arm_simulator = Simulator()
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
@@ -54,6 +69,28 @@ class SimSubscriber(Node):
         self.speech_callback,
         10)
     self.speech_subscription
+
+  def on_press(self,  key):
+    try:
+      #self.get_logger().info(f'key {key.char} pressed')
+      if key.char == 'r':
+        self.set_mode(Mode.RECORD)
+      elif key.char == 's':
+        self.set_mode(Mode.IMITATE)
+      elif key.char == 'p':
+        self.replay_movement()
+    except AttributeError:
+      self.get_logger().info(f'special key {key} pressed')
+
+  def play_sound(self, sound):
+    path = join(self.SOUNDFX_PATH, sound.value)
+    threading.Thread(target=playsound, args=(path,)).start()
+
+  def on_release(self, key):
+    #self.get_logger().info(f'key {key} released')
+    if key == keyboard.Key.esc:
+      # Stop listener
+      return False
 
 
   def gestures_callback(self, msg):
@@ -81,8 +118,7 @@ class SimSubscriber(Node):
     elif self.last_speech_keyword == 'stop':
       self.set_mode(Mode.IMITATE)
     elif self.last_speech_keyword == 'replay':
-      self.set_mode(Mode.REPLAY)
-      self.replay_movement()
+      threading.Thread(target=self.replay_movement()).start()
     elif self.last_speech_keyword == 'feedback':
       if self.mode != Mode.RECORD or self.mode != Mode.REPLAY:
         self.set_mode(Mode.FEEDBACK)
@@ -107,25 +143,31 @@ class SimSubscriber(Node):
     elif keyword == 'smaller':
       c = 0.9
     elif keyword == 'faster':
-      if self.replay_speed < self.max_replay_speed: self.replay_speed += 1
+      if self.REPLAY_SPEED < self.MAX_REPLAY_SPEED: self.REPLAY_SPEED += 1
     elif keyword == 'slower':
-      if self.replay_speed > 1: self.replay_speed -= 1
+      if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
     self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c+dz), self.trajectory))
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.set_mode(Mode.IMITATE)
 
 
   def set_mode(self, mode):
-    self.mode = mode 
-    self.get_logger().info(f'Mode set to {mode.value}')
+    if self.mode != mode:
+      self.mode = mode 
+      self.play_sound(Sound.NOTIFY)
+      self.get_logger().info(f'Mode set to {mode.value}')
 
   def replay_movement(self):
-    if self.trajectory != []:
-      for coord in self.trajectory:
-        self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
-        time.sleep(self.replay_ratio)
-      self.get_logger().info(f'Replay complete.')
-      self.set_mode(Mode.IMITATE)
+    if self.mode != Mode.RECORD:
+      if self.trajectory != []:
+        self.set_mode(Mode.REPLAY)
+        for coord in self.trajectory:
+          if self.mode != Mode.REPLAY: break
+          self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
+          time.sleep(self.REPLAY_RATIO)
+        self.get_logger().info(f'Replay complete.')
+        self.set_mode(Mode.IMITATE)
+        self.play_sound(Sound.FINISHED)
 
 def main(args=None):
   rclpy.init(args=args)
