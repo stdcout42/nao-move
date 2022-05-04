@@ -1,5 +1,0 @@
-[console_scripts]
-gesture_talker = arm_simulator.gesture_talker:main
-sim_listener = arm_simulator.sim_listener:main
-speech_talker = arm_simulator.speech_talker:main
-
