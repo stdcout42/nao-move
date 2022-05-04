@@ -5,6 +5,7 @@
 [Link](https://drive.google.com/drive/folders/15IWhDwY0hzxDpBRG4-ujRWeK-qrg7z2i?usp=sharing)
 - results / data folder
     - Robot arm simulator demo [video](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view)
+    - May 4th 2022, arm simulator demo with new method: [video](https://drive.google.com/file/d/1QnhcysKL1fhK-SB1o6wS4MHmiphN7qrs/view?usp=sharing)
 
 ## Directories
 ### docs
