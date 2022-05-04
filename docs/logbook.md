@@ -36,3 +36,20 @@
 - Set up ROS2 implementation of the simulator
 - Modularized code-base and tried to create a proper architecture for scaling later
 
+### Week 5
+#### What I've been doing
+
+#### Questions
+- Pepper simulation (QiBullet): briefly played with it, it's not mimicking the movements correctly
+- Speed of replay - currently using `sleep` and
+### Goals for next week
+- Perfect sim 
+  -(incl feedback:  perhaps a text to speech for feedback)
+  - have feedback be looping (or x number of loops)
+  - the correct boundaries of the sim (feedback when OOB movement?)
+  - see if speed can be timestamped
+- Set up experiment with sim
+Later:
+- depth
+- less CPU expensive set up on the sim?
+- demo on the real bot (next week)

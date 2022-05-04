@@ -150,3 +150,10 @@ Was unable to complete (2) and (3) yesterday. Today, I will focus on completing 
 - Added directional as well as scaling feedback 
 - Added faster + slower feedback
 - Possible TODO: create extra thread for the replay feature - allowing the program to break off the replay if a ''stop' command is heard
+
+## May 2nd
+- Add a no voice launcher
+- Add keyboard support
+
+## May 3th
+- Set up a barebone pepper simulator (nothing really works yet)
