@@ -9,6 +9,7 @@ from playsound import playsound
 from enum import Enum, auto
 from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
+from .utils.pepper_simulator import PepperSimulator
 from os.path import join
 
 class AutoName(Enum):
@@ -41,6 +42,7 @@ class SimSubscriber(Node):
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
   SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
+  PEPPER_SIM = False
 
   def __init__(self):
     super().__init__('sim_subscriber')
@@ -50,8 +52,8 @@ class SimSubscriber(Node):
     self.listener = keyboard.Listener(on_press=self.on_press,
       on_release=self.on_release)
     self.listener.start()
+    self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
     self.create_subscriptions()
-    self.arm_simulator = Simulator()
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
@@ -101,7 +103,9 @@ class SimSubscriber(Node):
     #self.get_logger().info('Incoming coords: "%s"' % f'{msg.x}, {msg.y}, {msg.z}')
     self.last_coords_vec = msg
     if self.mode == Mode.IMITATE or self.mode == Mode.RECORD:
-      self.arm_simulator.move_arm([msg.x, msg.y, msg.z])
+      #self.arm_simulator.move_arm([msg.x, msg.y, msg.z])
+      #self.pepper_simulator.move([msg.x, msg.y, msg.z])
+      self.simulator.move([msg.x, msg.y, msg.z])
       if self.mode == Mode.RECORD:
         self.trajectory.append(msg)
 
@@ -163,7 +167,9 @@ class SimSubscriber(Node):
         self.set_mode(Mode.REPLAY)
         for coord in self.trajectory:
           if self.mode != Mode.REPLAY: break
-          self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
+          #self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
+          #self.pepper_simulator.move([coord.x, coord.y, coord.z])
+          self.simulator.move([coord.x, coord.y, coord.z])
           time.sleep(self.REPLAY_RATIO)
         self.get_logger().info(f'Replay complete.')
         self.set_mode(Mode.IMITATE)

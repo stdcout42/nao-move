@@ -46,21 +46,17 @@ class GesturePublisher(Node):
   def publish_coords(self):
     coords = self.cvUtils.last_coords
     if coords != []:
-      coords = adjustScale(coords)
+      coords = adjustScale(coords) 
       coords_vec = Vector3()
       coords_vec.x = coords[0]
       coords_vec.y = coords[1]
       coords_vec.z = coords[2]
       self.coords_publisher.publish(coords_vec)
-      #msg = String()
-      #msg.data = f'{str(coords[0])},{str(coords[1])},{str(coords[2])}'
-      #self.coords_publisher.publish()
-      #self.get_logger().info('Publishing "%s"' % msg.data)
 
 def adjustScale(coords):           #y needs to be inverted
     x = coords[0] - 300
     z = 450 - coords[2]
-    return [x * (2.0/600), coords[1], z * (1.0/450)]
+    return [x * (1.0/300), -coords[1]*10, z * (1.0/450)]
 
 
 def main(args=None):

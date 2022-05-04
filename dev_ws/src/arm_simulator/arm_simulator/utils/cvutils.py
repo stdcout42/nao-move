@@ -70,8 +70,8 @@ class CvUtils(object):
   
   def init_cam(self): 
     self.cap = cv.VideoCapture(self.cap_device)
-    self.cap.set(cv.CAP_PROP_FRAME_WIDTH, self.cap_width)
-    self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, self.cap_height)
+    #self.cap.set(cv.CAP_PROP_FRAME_WIDTH, self.cap_width)
+    #self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, self.cap_height)
 
   def init_mp_hands(self):
     self.mp_hands = mp.solutions.hands
@@ -221,8 +221,8 @@ class CvUtils(object):
     for _, landmark in enumerate(landmarks.landmark):
       landmark_x = min(int(landmark.x * image_width), image_width - 1)
       landmark_y = min(int(landmark.y * image_height), image_height - 1)
-      # landmark_z = landmark.z
-
+      #landmark_z = abs(landmark.z)
+      self.z_coord = abs(landmark.z)
       landmark_point.append([landmark_x, landmark_y])
 
     return landmark_point
@@ -326,7 +326,7 @@ class CvUtils(object):
   def draw_point_history(self, image, point_history):
     for index, point in enumerate(point_history):
       if point[0] != 0 and point[1] != 0:
-       self.last_coords = [point[0], -0.3, point[1]]
+       self.last_coords = [point[0], self.z_coord, point[1]]
        cv.circle(image, (point[0], point[1]), 1 + int(index / 2),
                   (152, 251, 152), 2)
 
@@ -339,6 +339,7 @@ class CvUtils(object):
     cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                1.0, (255, 255, 255), 2, cv.LINE_AA)
 
+    coord_text = "" if self.last_coords == [] else f'x:{self.last_coords[0]} y:{self.last_coords[2]}, z:{self.z_coord}'
     mode_string = ['Logging Key Point', 'Logging Point History']
     if 1 <= mode <= 2:
         cv.putText(image, "MODE:" + mode_string[mode - 1], (10, 90),
@@ -348,6 +349,8 @@ class CvUtils(object):
           cv.putText(image, "NUM:" + str(number), (10, 110),
               cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
               cv.LINE_AA)
+    cv.putText(image, coord_text, (10, 130),
+        cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv.LINE_AA)
     return image 
 
 

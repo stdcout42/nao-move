@@ -62,7 +62,7 @@ class Simulator(object):
     self.positionGains = [0.03] * self.num_controlled_joints
     self.velocityGains = [1] * self.num_controlled_joints
 
-  def move_arm(self, coords):
+  def move(self, coords):
     p.stepSimulation()
     jointPoses = p.calculateInverseKinematics(self.arm_id, self.eef_index, coords, self.orn,
                                                 lowerLimits=self.ll,
