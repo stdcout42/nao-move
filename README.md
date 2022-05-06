@@ -25,6 +25,9 @@ The workspace for ROS2 packages. (see ROS2 architecture below)
 - vosk (`pip3 install vosk`)
 - pynput (`pip3 install pynput`)
 - playsound (`pip3 install playsound`)
+- [pyttsx3](https://pypi.org/project/pyttsx3/) On ubuntu 20.04, 
+  - requires espeak: sudo apt install espeak
+  - requires ffmpeg: sudo apt install ffmpeg
 - TODO: more?
 ### Configuration
 - Currently hardcoded to detect webcam from feed 0 (on linux: `/dev/video0`)
