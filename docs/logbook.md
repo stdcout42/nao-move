@@ -38,11 +38,13 @@
 
 ### Week 5
 #### What I've been doing
-
+- Keyboard input for recording/saving/replaying
+- Barebones pepper simulation using QiBullet
+- Sound effects
 #### Questions
 - Pepper simulation (QiBullet): briefly played with it, it's not mimicking the movements correctly
 - Speed of replay - currently using `sleep` and
-### Goals for next week
+#### Goals for next week
 - Perfect sim 
   -(incl feedback:  perhaps a text to speech for feedback)
   - have feedback be looping (or x number of loops)
