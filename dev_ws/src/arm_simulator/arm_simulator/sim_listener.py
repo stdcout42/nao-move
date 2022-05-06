@@ -1,6 +1,7 @@
 import rclpy
 import time
 import threading
+import pyttsx3
 import os
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -32,6 +33,10 @@ class Feedback(AutoName):
   FASTER = auto()
   SLOWER = auto()
 
+class SpeechMode(AutoName):
+  CORRECTION = auto()
+  LISTEN = auto()
+
 class Sound(Enum):
   NOTIFY = 'notify.wav' 
   FINISHED = 'finished.wav' 
@@ -47,11 +52,15 @@ class SimSubscriber(Node):
   def __init__(self):
     super().__init__('sim_subscriber')
     self.mode = Mode.IMITATE
+    self.speech_mode = SpeechMode.LISTEN
+    self.speech_history = []
     self.trajectory = []
     self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
-    self.listener = keyboard.Listener(on_press=self.on_press,
+    self.keyboard_listener = keyboard.Listener(on_press=self.on_press,
       on_release=self.on_release)
-    self.listener.start()
+    self.keyboard_listener.start()
+    self.text_to_speech_engine = pyttsx3.init()
+    self.text_to_speech_engine.setProperty('rate', 100)
     self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
     self.create_subscriptions()
 
@@ -91,7 +100,7 @@ class SimSubscriber(Node):
   def on_release(self, key):
     #self.get_logger().info(f'key {key} released')
     if key == keyboard.Key.esc:
-      # Stop listener
+      # Stop keyboard_listener
       return False
 
 
@@ -111,24 +120,46 @@ class SimSubscriber(Node):
 
   def speech_callback(self, msg):
     self.get_logger().info('Incoming speech: "%s"' % msg.data)
-    self.last_speech_keyword = msg.data
-    self.process_speech()
+    self.speech_history.insert(0, msg.data)
+    if self.speech_mode == SpeechMode.LISTEN:
+      self.process_speech()
+    else:
+      self.process_speech_correction()
 
   # TODO: Catch all edge cases where certain mode changes are not allowed
-  def process_speech(self):
-    if self.last_speech_keyword == 'record':
-      self.trajectory = []
+  def process_speech(self, keyword=''):
+    if keyword == '': keyword = self.speech_history[0]
+
+    if keyword == 'record':
+      trajectory = []
       self.set_mode(Mode.RECORD)
-    elif self.last_speech_keyword == 'stop':
+    elif keyword == 'stop':
       self.set_mode(Mode.IMITATE)
-    elif self.last_speech_keyword == 'replay':
+    elif keyword == 'replay':
       threading.Thread(target=self.replay_movement()).start()
-    elif self.last_speech_keyword == 'feedback':
-      if self.mode != Mode.RECORD or self.mode != Mode.REPLAY:
+    elif keyword == 'we':
+      self.text_to_speech(f'Did you mean replay?')
+      self.speech_mode = SpeechMode.CORRECTION
+      self.get_logger().info(f'Speech mode set to correction')
+    elif keyword == 'feedback':
+      if mode != Mode.RECORD or mode != Mode.REPLAY:
         self.set_mode(Mode.FEEDBACK)
-    elif self.last_speech_keyword in self.feedback_names: 
-      if self.mode == Mode.FEEDBACK:
-        self.change_trajectory(self.last_speech_keyword)
+    elif keyword in self.feedback_names: 
+      if mode == Mode.FEEDBACK:
+        self.change_trajectory(keyword)
+    else:
+      self.text_to_speech(f'Unrecognized command {keyword}')
+
+  def process_speech_correction(self):
+    last_speech_keyword = self.speech_history[0]
+    if last_speech_keyword == 'yes':
+      if self.speech_history[1] == 'we':
+        self.process_speech('replay')
+    self.speech_mode = SpeechMode.LISTEN
+
+# TODO:
+def set_speech_mode(mode):
+  pass
 
 # TODO: Add more feedback commands
   def change_trajectory(self, keyword):
@@ -154,11 +185,15 @@ class SimSubscriber(Node):
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.set_mode(Mode.IMITATE)
 
+  def text_to_speech(self, text):
+    self.text_to_speech_engine.say(text)
+    threading.Thread(target=self.text_to_speech_engine.runAndWait()).start()
 
   def set_mode(self, mode):
     if self.mode != mode:
       self.mode = mode 
-      self.play_sound(Sound.NOTIFY)
+      #self.play_sound(Sound.NOTIFY)
+      self.text_to_speech(f'Change mode to {mode.value}')
       self.get_logger().info(f'Mode set to {mode.value}')
 
   def replay_movement(self):
@@ -167,8 +202,6 @@ class SimSubscriber(Node):
         self.set_mode(Mode.REPLAY)
         for coord in self.trajectory:
           if self.mode != Mode.REPLAY: break
-          #self.arm_simulator.move_arm([coord.x, coord.y, coord.z])
-          #self.pepper_simulator.move([coord.x, coord.y, coord.z])
           self.simulator.move([coord.x, coord.y, coord.z])
           time.sleep(self.REPLAY_RATIO)
         self.get_logger().info(f'Replay complete.')

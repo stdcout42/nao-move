@@ -157,3 +157,10 @@ Was unable to complete (2) and (3) yesterday. Today, I will focus on completing 
 
 ## May 3th
 - Set up a barebone pepper simulator (nothing really works yet)
+
+## May 5th
+- Study PyBullet
+- IK still not behaving as expected for pepper - opened an issue
+## May 6th
+- Will try to get Text to Speech working today, only a few hours available today
+- 
