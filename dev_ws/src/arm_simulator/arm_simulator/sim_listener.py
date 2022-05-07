@@ -157,9 +157,11 @@ class SimSubscriber(Node):
         self.process_speech('replay')
     self.speech_mode = SpeechMode.LISTEN
 
-# TODO:
-def set_speech_mode(mode):
-  pass
+  # TODO: incorporate
+  def set_speech_mode(self, mode):
+      if self.speech_mode != mode:
+        self.speech_mode = mode
+        self.get_logger().info(f'Speech mode set to {mode.value}')
 
 # TODO: Add more feedback commands
   def change_trajectory(self, keyword):
