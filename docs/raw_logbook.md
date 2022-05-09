@@ -168,3 +168,6 @@ Was unable to complete (2) and (3) yesterday. Today, I will focus on completing 
 ## May 7th
 Today:
 - Improve interfacing with the simulator
+- Got new mic working. After some messing around, with the use of
+`pyaudio_test.py` script, one can retrieve the mic input to use for PyAudio
+in the file `speech_talker.py`

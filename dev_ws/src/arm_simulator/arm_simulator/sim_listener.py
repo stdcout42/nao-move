@@ -18,7 +18,7 @@ class AutoName(Enum):
     return name
 
 class Mode(AutoName):
-  IMITATE = auto()
+  IMITATE = 'stop'
   RECORD = auto()
   REPLAY = auto()
   FEEDBACK = auto()
@@ -36,6 +36,7 @@ class Feedback(AutoName):
 class SpeechMode(AutoName):
   CORRECTION = auto()
   LISTEN = auto()
+  OFF = auto()
 
 class Sound(Enum):
   NOTIFY = 'notify.wav' 
@@ -56,6 +57,7 @@ class SimSubscriber(Node):
     self.speech_history = []
     self.trajectory = []
     self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
+    self.guessed_word = ''
     self.keyboard_listener = keyboard.Listener(on_press=self.on_press,
       on_release=self.on_release)
     self.keyboard_listener.start()
@@ -84,12 +86,15 @@ class SimSubscriber(Node):
   def on_press(self,  key):
     try:
       #self.get_logger().info(f'key {key.char} pressed')
-      if key.char == 'r':
+      if key.char == 'r': # Record movement mode
         self.set_mode(Mode.RECORD)
-      elif key.char == 's':
+      elif key.char == 's': # Stop action
         self.set_mode(Mode.IMITATE)
-      elif key.char == 'p':
+      elif key.char == 'p': # (re)-play recorded movement
         self.replay_movement()
+      elif key.char == 'v': # switch on/off voice control
+        self.set_speech_mode(
+            SpeechMode.OFF if self.speech_mode == SpeechMode.LISTEN else SpeechMode.LISTEN)
     except AttributeError:
       self.get_logger().info(f'special key {key} pressed')
 
@@ -119,6 +124,7 @@ class SimSubscriber(Node):
         self.trajectory.append(msg)
 
   def speech_callback(self, msg):
+    if self.speech_mode == SpeechMode.OFF: return
     self.get_logger().info('Incoming speech: "%s"' % msg.data)
     self.speech_history.insert(0, msg.data)
     if self.speech_mode == SpeechMode.LISTEN:
@@ -130,40 +136,44 @@ class SimSubscriber(Node):
   def process_speech(self, keyword=''):
     if keyword == '': keyword = self.speech_history[0]
 
-    if keyword == 'record':
-      trajectory = []
+    if keyword == Mode.RECORD.name.lower():
+      self.trajectory = []
       self.set_mode(Mode.RECORD)
-    elif keyword == 'stop':
+    elif keyword[:2] == 'rec' or keyword[:2] == 'req':
+      self.guess_word(Mode.RECORD.name.lower())
+    elif keyword == Mode.IMITATE.value:
       self.set_mode(Mode.IMITATE)
-    elif keyword == 'replay':
+    elif keyword == Mode.REPLAY.name.lower():
       threading.Thread(target=self.replay_movement()).start()
-    elif keyword == 'we':
-      self.text_to_speech(f'Did you mean replay?')
-      self.speech_mode = SpeechMode.CORRECTION
-      self.get_logger().info(f'Speech mode set to correction')
-    elif keyword == 'feedback':
-      if mode != Mode.RECORD or mode != Mode.REPLAY:
+    elif keyword == 'we' or keyword[:2] == 'rep':
+      self.guess_word(Mode.REPLAY.name.lower())
+    elif keyword == Mode.FEEDBACK.name.lower():
+      if self.mode != Mode.RECORD or self.mode != Mode.REPLAY:
         self.set_mode(Mode.FEEDBACK)
-    elif keyword in self.feedback_names: 
-      if mode == Mode.FEEDBACK:
+    elif self.mode == Mode.FEEDBACK and keyword in self.feedback_names: 
         self.change_trajectory(keyword)
     else:
       self.text_to_speech(f'Unrecognized command {keyword}')
+  
+  def guess_word(self, word):
+    self.set_speech_mode(SpeechMode.CORRECTION)
+    self.guessed_word = word
+    self.text_to_speech(f'Did you mean {word}?')
 
   def process_speech_correction(self):
     last_speech_keyword = self.speech_history[0]
     if last_speech_keyword == 'yes':
-      if self.speech_history[1] == 'we':
-        self.process_speech('replay')
-    self.speech_mode = SpeechMode.LISTEN
+      if self.guessed_word == Mode.REPLAY.name:
+        self.process_speech(Mode.REPLAY.name)
+      elif self.guessed_word == Mode.RECORD.name:
+        self.process_speech(Mode.RECORD.name)
+    self.set_speech_mode(SpeechMode.LISTEN)
 
-  # TODO: incorporate
-  def set_speech_mode(self, mode):
-      if self.speech_mode != mode:
-        self.speech_mode = mode
-        self.get_logger().info(f'Speech mode set to {mode.value}')
+  def set_speech_mode(self, mode): 
+    if self.speech_mode != mode: 
+      self.speech_mode = mode
+      self.get_logger().info(f'Speech mode set to {mode.name}')
 
-# TODO: Add more feedback commands
   def change_trajectory(self, keyword):
     dx = dy = dz = 0
     c = 1.0
@@ -195,8 +205,8 @@ class SimSubscriber(Node):
     if self.mode != mode:
       self.mode = mode 
       #self.play_sound(Sound.NOTIFY)
-      self.text_to_speech(f'Change mode to {mode.value}')
-      self.get_logger().info(f'Mode set to {mode.value}')
+      self.text_to_speech(f'Change mode to {mode.name}')
+      self.get_logger().info(f'Mode set to {mode.name}')
 
   def replay_movement(self):
     if self.mode != Mode.RECORD:
