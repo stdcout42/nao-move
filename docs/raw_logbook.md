@@ -168,3 +168,18 @@ Was unable to complete (2) and (3) yesterday. Today, I will focus on completing 
 ## May 7th
 Today:
 - Improve interfacing with the simulator
+- Got new mic working. After some messing around, with the use of
+`pyaudio_test.py` script, one can retrieve the mic input to use for PyAudio
+in the file `speech_talker.py`
+- Created issue asking for help on QiBullet for IK - no answers.
+
+## May 8th - May 9th
+- Add multiple loop (3 times for now) for replay
+- Had some troubles where I spent a lot of time trying to get the external mic to be detected [fixed: mic input source should be set to 'pulse' on Ubuntu 20.04]
+- Implemented a two keyword voice command detection: commands are processed only if they start with "hey". Example: "Hey record"
+
+## May 10th
+- TODO: Incorporate full body pose from mediapipe for depth detection
+- Check out some repositories for IK and see if I can incorporate them in PyBullet / QiBullet. Seems like the way to go is to calculate angles and pass it to `setAngles` method.
+
+
