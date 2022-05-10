@@ -171,6 +171,7 @@ Today:
 - Got new mic working. After some messing around, with the use of
 `pyaudio_test.py` script, one can retrieve the mic input to use for PyAudio
 in the file `speech_talker.py`
+<<<<<<< HEAD
 - Created issue asking for help on QiBullet for IK - no answers.
 
 ## May 8th - May 9th

@@ -27,7 +27,7 @@ class SpeechPublisher(Node):
           js = json.loads(res)
           first_two_words = js['text'].split(' ')[:2]
           if len(first_two_words) == 2 and first_two_words[0] == 'hey':
-            #print(f'first_two_words {first_two_words}')
+            print(f'first_two_words {first_two_words}')
             msg = String()
             msg.data = first_two_words[1]
             self.publisher_.publish(msg)
