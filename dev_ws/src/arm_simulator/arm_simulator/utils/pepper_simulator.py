@@ -14,13 +14,14 @@ class PepperSimulator(object):
     self.client = self.simulation_manager.launchSimulation(gui=True)
     self.pepper = self.simulation_manager.spawnPepper(self.client, spawn_ground_plane=True)
     self.bodyUniqueId = self.pepper.getRobotModel()
-    print(f'initial position: {self.pepper.getLinkPosition("r_wrist")[0]}')
+    print(f'initial position: {self.pepper.getLinkPosition("r_hand")[0]}')
 
 
   def move(self, coords):
-   coords = [0.25, 0.1663, 1.5294]
-   print(f'translation: {self.pepper.getLinkPosition("r_wrist")[0]}')
-   endEffectorLinkIndex = self.pepper.link_dict["l_wrist"].getIndex()
+
+   coords = [-0.030396, -0.50388, 0.919302]
+   print(f'translation: {self.pepper.getLinkPosition("r_hand")[0]}')
+   endEffectorLinkIndex = self.pepper.link_dict["r_hand"].getIndex()
    #p.stepSimulation()
    self.simulation_manager.stepSimulation(self.client)
    ik = p.calculateInverseKinematics(self.bodyUniqueId, endEffectorLinkIndex, coords)
