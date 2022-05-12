@@ -180,10 +180,17 @@ Today:
 ## May 10th
 - TODO: Incorporate full body pose from mediapipe for depth detection
 - Check out some repositories for IK and see if I can incorporate them in PyBullet / QiBullet. Seems like the way to go is to calculate angles and pass it to `setAngles` method.
-<<<<<<< HEAD
 
 ## May 11th
 - Pose is being detected correctly
 - Tooling around with a repo that converts absolute coords (from origin frame) to angles for pepper
 - Have not been able to get it completely correct but seems promising
+
+## May 12
+- It seems that pose detection and Hand detection reduces FPS tremendously, will have to see if that has adverse effects for recording the trajectory (likely). 
+### Meeting with Dr. Baraka
+- Gesture for feedback (possibly the main way if speech doesn't improve)
+  - Google speech?
+- Both pepper / robot arm and possiby testing which one is easier to use
+- Trajectory with wrist, translate map to other joints
 

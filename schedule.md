@@ -1,7 +1,3 @@
-Gesture
-Both pepper / arm
-Trajectory with wrist, translate map to other joints
----
 Protocol for study: 
  - set up
  - participants
@@ -9,12 +5,12 @@ Protocol for study:
  - conditions / design of study / instruments
  - objective data/ subjective
  - specific demo? 
+Week of 22th may: protocol study (see above) (1 week)
+Week of 29th may: collect participants for exp / try robot (physical) (1 week)
+Week of 29th may: set up private experiments (with min. 3 people)
 End of may: done developing
-  Draft of thesis before presentation
-Week of 22th may: protocol study (see above)
-Week of 29th may: collect participants for exp / try robot (physical)
 June 2nd and 9th Dr. Baraka not available
-Week of 5th june: run experiment
+Week of 5th june: run experiment (1 week)
 Week of 12th june: related work (18th done)
 End of week 19th:  full draft 
 present (around week of 26th)

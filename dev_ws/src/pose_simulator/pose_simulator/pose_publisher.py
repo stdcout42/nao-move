@@ -40,7 +40,7 @@ class PosePublisher(Node):
         coords_vec.y = 1.5*-coords[0]
         coords_vec.z = 1.5*-coords[1]
         self.publisher_.publish(coords_vec)
-        print(coords_vec)
+        #print(coords_vec)
 
 def main(args=None):
   rclpy.init(args=args)

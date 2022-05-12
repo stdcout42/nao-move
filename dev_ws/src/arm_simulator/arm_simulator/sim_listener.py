@@ -48,7 +48,7 @@ class SimSubscriber(Node):
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
   SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
-  PEPPER_SIM = False
+  PEPPER_SIM = True 
 
   def __init__(self):
     super().__init__('sim_subscriber')

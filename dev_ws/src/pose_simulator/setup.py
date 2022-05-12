@@ -10,7 +10,7 @@ point_history_classifier = f'{package_name}/utils/point_history_classifier'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name, utils],
+    packages=[package_name, utils, keypoint_classifier, point_history_classifier],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

@@ -24,6 +24,7 @@ class SpeechPublisher(Node):
         data = stream.read(4096)
         if recognizer.AcceptWaveform(data):
           res = recognizer.Result()
+          print(res)
           js = json.loads(res)
           first_two_words = js['text'].split(' ')[:2]
           if len(first_two_words) == 2 and first_two_words[0] == 'hey':
