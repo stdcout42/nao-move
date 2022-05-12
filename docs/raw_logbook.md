@@ -183,4 +183,7 @@ in the file `speech_talker.py`
 - TODO: Incorporate full body pose from mediapipe for depth detection
 - Check out some repositories for IK and see if I can incorporate them in PyBullet / QiBullet. Seems like the way to go is to calculate angles and pass it to `setAngles` method.
 
-
+## May 11th
+- Pose is being detected correctly
+- Tooling around with a repo that converts absolute coords (from origin frame) to angles for pepper
+- Have not been able to get it completely correct but seems promising

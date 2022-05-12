@@ -55,3 +55,10 @@ Later:
 - depth
 - less CPU expensive set up on the sim?
 - demo on the real bot (next week)
+
+### Week 6
+#### What I've been doing
+- Created a completely new package that uses media pipe pose (better depth detection)
+- Improved voice interactions 
+- Attempting to get poses to map to QiBullet  with the `setAngles` method 
+- Tried to get correct absolute measurements by: referencing head size (to average size), referencing lip size. aAll unsuccesful 
