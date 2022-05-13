@@ -194,3 +194,8 @@ Today:
 - Both pepper / robot arm and possiby testing which one is easier to use
 - Trajectory with wrist, translate map to other joints
 
+## May 13
+- Pose detection and hand detection enabled, min(fps) = 11
+- holistic, min(fps) = 15
+- hand detection, min(fps) = 17
+Ended up implementing hand + depth on the robot arm
