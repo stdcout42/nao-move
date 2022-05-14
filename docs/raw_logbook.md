@@ -199,3 +199,10 @@ Today:
 - holistic, min(fps) = 15
 - hand detection, min(fps) = 17
 Ended up implementing hand + depth on the robot arm
+
+## May 14th
+- Pepper imitation is finally working
+- Tomorrow:
+  - will work on gestures, 
+  - solidifying 'fist' detection for imitation, 
+  - fine tuning the imitation movement(by using getting pepper's position and adding the relative positions to it)

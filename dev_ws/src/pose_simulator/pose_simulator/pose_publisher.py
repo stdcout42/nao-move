@@ -18,11 +18,6 @@ class PosePublisher(Node):
     while rclpy.ok() and not stat:
       try:
         stat = self.cvUtils.process_stream()
-        #f self.cvUtils.left_wrist_coords is not None and self.cvUtils.left_wrist_coords is not None and self.cvUtils.face_width is not None:
-        # factor = 180 / self.cvUtils.face_width
-        # factor_ = 0.05 / self.cvUtils.lip_len
-        # shoulder_to_elbow = self.cvUtils.shoulder_to_elbow_len * factor
-        # #print(f'shoulder_to_elbow in mm: {shoulder_to_elbow*factor_}')
         self.publish_coords()
 
       except KeyboardInterrupt:
@@ -32,15 +27,17 @@ class PosePublisher(Node):
     exit()
 
   def publish_coords(self):
-      coords = self.cvUtils.right_wrist_coords
-      if coords is not None:
-        #coords = adjustScale(coords) 
+      coords = self.cvUtils.right_wrist_world_coords
+      #coords = self.cvUtils.last_coords
+      if coords is not None and self.cvUtils.last_coords is not None:
+       #coords = adjustScale(coords) 
         coords_vec = Vector3()
-        coords_vec.x = 1.5*-coords[2]
-        coords_vec.y = 1.5*-coords[0]
-        coords_vec.z = 1.5*-coords[1]
+        coords_vec.x = float(coords[0])
+        coords_vec.y = float(coords[1])
+        coords_vec.z = float(coords[2])
+
+        print(coords_vec)
         self.publisher_.publish(coords_vec)
-        #print(coords_vec)
 
 def main(args=None):
   rclpy.init(args=args)
