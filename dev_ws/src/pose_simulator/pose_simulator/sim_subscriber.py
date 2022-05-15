@@ -121,9 +121,9 @@ class SimSubscriber(Node):
       if not self.PEPPER_SIM:
         coords = adjustScaleJaco(coords)
       else:
-        #coords[1] *= 1
-        #coords[2] *= -1
-        #coords[2] += .60
+        coords[1] *= 1
+        coords[2] *= -1
+        coords[2] += .60
       print(f'Moving sim to x,y,z with z being height {coords}')
       self.simulator.move(coords)
       if self.mode == Mode.RECORD:
