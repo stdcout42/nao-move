@@ -206,3 +206,20 @@ Ended up implementing hand + depth on the robot arm
   - will work on gestures, 
   - solidifying 'fist' detection for imitation, 
   - fine tuning the imitation movement(by using getting pepper's position and adding the relative positions to it)
+
+## May 15th
+- Added thousands of training points and improved gesture recognition
+Forgot to mention yesterday: have to also add voice control sub module to this new package (pose\_simulator), as well as a new launch file (easy)
+How should I approach switching modes with gestures. Also should voice recog be improved further? Needs more testing.
+- Finished adding voice control to `pose_simulator` package and launch file
+
+## May 16th
+- Changed speech to  text to non blocking speech to text (gTTS)
+- Fix bug where left fist would also set off movement
+- Add trajectory lines when (recording) movement has been initiated
+  - have a feedback command which shows what the current trajectory looks like
+  - have the (new and old) trajectories be shown when feedback has been given
+  - add text to show new trajectory 
+
+
+
