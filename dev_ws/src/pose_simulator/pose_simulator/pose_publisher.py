@@ -36,7 +36,7 @@ class PosePublisher(Node):
         coords_vec.y = float(coords[1])
         coords_vec.z = float(coords[2])
 
-        print(coords_vec)
+        #print(coords_vec)
         self.publisher_.publish(coords_vec)
 
 def main(args=None):

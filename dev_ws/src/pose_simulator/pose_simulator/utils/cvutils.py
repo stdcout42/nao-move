@@ -84,7 +84,8 @@ class CvUtils(object):
 
         # sign classification
         hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
-        if hand_sign_id == 0: # Fist
+        handedness_label = handedness.classification[0].label[0:]
+        if hand_sign_id == 0 and  handedness_label == 'Right': # Right Fist
           self.point_history.append(landmark_list[0]) 
         else: self.point_history.append([0,0])
         self.last_gesture = self.keypoint_classifier_labels[hand_sign_id]
