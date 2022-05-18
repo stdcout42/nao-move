@@ -251,9 +251,9 @@ class SimSubscriber(Node):
           if self.mode != Mode.REPLAY: break
           for coord in self.trajectory:
             if self.mode != Mode.REPLAY: break
-            self.simulator.move([coord.x, coord.y, coord.z])
+            self.simulator.move([coord.x, coord.y, coord.z], draw=True)
             time.sleep(self.REPLAY_RATIO)
-        self.get_logger().info(f'Replay complete.')
+        self.get_logger().info('Replay complete.')
         self.set_mode(Mode.IMITATE)
 
 def adjustScaleJaco(coords):

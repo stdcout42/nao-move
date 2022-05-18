@@ -65,5 +65,12 @@ Later:
 
 ### Week 7
 #### What I've been doing
-
+- Pepper finally behaves as it should (QiBullet)
+- Lines for feedback 
+- New speech to text module
+- Implementing LSTM for mode change using sign language 
 #### Questions
+- What does 'smaller' mean in terms of feedback (smaller in which dimension/axis)?
+- How much in detail should I go in the paper about the libraries used? Similarly, what should the bulk of the writing be in?
+- Outline OK? 
+- Mode change with sign language: discuss with Dr. B
