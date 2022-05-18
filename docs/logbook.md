@@ -62,3 +62,8 @@ Later:
 - Improved voice interactions 
 - Attempting to get poses to map to QiBullet  with the `setAngles` method 
 - Tried to get correct absolute measurements by: referencing head size (to average size), referencing lip size. aAll unsuccesful 
+
+### Week 7
+#### What I've been doing
+
+#### Questions

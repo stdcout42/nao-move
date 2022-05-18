@@ -222,4 +222,5 @@ How should I approach switching modes with gestures. Also should voice recog be 
   - add text to show new trajectory 
 
 
-
+## May 17-18th 
+- Working non-stop on LSTM sign recognition
