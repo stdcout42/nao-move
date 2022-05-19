@@ -1,22 +1,21 @@
-import rclpy
 import time
 import threading
 import os
 import copy
-from gtts import gTTS
 import numpy as np
+import rclpy
+from enum import Enum, auto
+from gtts import gTTS
 from tempfile import NamedTemporaryFile
 from rclpy.node import Node
 from std_msgs.msg import String
 from pynput import keyboard
 from playsound import playsound
-from enum import Enum, auto
 from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
 from .utils.pepper_simulator import PepperSimulator
 from os.path import join
 
-from threading import Event
 
 
 class AutoName(Enum):

@@ -5,10 +5,8 @@ import itertools
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
+import tensorflow as tf
 from .keypoint_classifier.keypoint_classifier import KeyPointClassifier
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-from tensorflow.keras.callbacks import TensorBoard
 
 """
 Implementation based on the hand-gesture-recognition-using-mediapipe
@@ -47,6 +45,9 @@ class CvUtils():
   z_coord = -0.3
   mp_drawing = mp.solutions.drawing_utils # Drawing utilities
   mp_drawing_styles = mp.solutions.drawing_styles
+  sequence = []
+  sentence = []
+  predictions = []
 
   def __init__(self, video_src=0):
     self.cap = cv.VideoCapture(video_src)
@@ -54,12 +55,14 @@ class CvUtils():
     #self.hands = self.mp_hands.Hands(max_num_hands=2)
     self.holistic = self.mp_holistic.Holistic()
     self.load_keypoint_classifier()
+    self.load_signlang_classifier()
     self.point_history = deque(maxlen=self.history_length)
     self.right_wrist_coords = None # later to be [x,z,y] with z being depth
     self.right_wrist_world_coords = None # later to be [x,z,y] with z being depth
     self.last_coords = None
     self.last_gesture = None
-
+    tf.get_logger().setLevel('INFO')
+  
   def process_stream(self):
     if not self.cap.isOpened(): return -1
 
@@ -68,11 +71,10 @@ class CvUtils():
     
    # Hands detections
     right_fist_detected =  False
-    sequence = []
-    sentence = []
-    predictions = []
     threshold = 0.5
     sequence_length = 30
+    actions = np.array(['yes', 'no', 'nothing', 'play', 'hey', 'record', 'feedback', 'save'])
+
 
     if results.left_hand_landmarks or results.right_hand_landmarks:
       if results.right_hand_landmarks:
@@ -120,13 +122,35 @@ class CvUtils():
       
       # make sign lang prediction
       keypoints = self.extract_keypoints(debug_image, results)
-      sequence.append(keypoints)
-      sequence = sequence[-sequence_length:]
+      self.sequence.append(keypoints)
+      self.sequence = self.sequence[-sequence_length:]
+      if len(self.sequence) == sequence_length:
+        res = self.signlang_classifier.predict(np.expand_dims(self.sequence, axis=0), verbose=0)[0]
+        #print(actions[np.argmax(res)])
+        self.predictions.append(np.argmax(res))
+          
+        # Viz logic
+        if np.unique(self.predictions[-10:])[0]==np.argmax(res):
+          if res[np.argmax(res)] > threshold:
+            if len(self.sentence) > 0:
+              if actions[np.argmax(res)] != self.sentence[-1]:
+                self.sentence.append(actions[np.argmax(res)])
+            else:
+              self.sentence.append(actions[np.argmax(res)])
+
+        if len(self.sentence) > 5:
+          self.sentence = self.sentence[-5:]
+
+        # Viz probabilities
+        debug_image = prob_viz(res, actions, debug_image)
+
+      cv.rectangle(debug_image, (0,0), (640, 40), (245, 117, 16), -1)
+      cv.putText(debug_image, ' '.join(self.sentence), (3,30),
+                     cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
 
     else: self.point_history.append([0,0])
     debug_image = self.draw_point_history(debug_image, self.point_history)
 
- 
     cv.imshow('Hello world.', debug_image)
     #print(self.fpscalc.get())
 
@@ -142,6 +166,9 @@ class CvUtils():
         encoding='utf-8-sig')
     self.keypoint_classifier_labels = csv.reader(keypoint_labels_file)
     self.keypoint_classifier_labels = [row[0] for row in self.keypoint_classifier_labels]
+  
+  def load_signlang_classifier(self):
+    self.signlang_classifier = tf.keras.models.load_model('src/pose_simulator/pose_simulator/utils/best_model_90shape.h5')
 
   def calc_bounding_rect(self, image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
@@ -282,4 +309,12 @@ def mediapipe_detection(image, model):
   image = cv.cvtColor(image, cv.COLOR_RGB2BGR) # COLOR COVERSION RGB 2 BGR
   return image, results
 
-
+def prob_viz(res, actions, input_frame):
+  colors = [(245,117,16), (117,245,16), (16,117,245), (123,85,25), (11,42,180), 
+      (51,142,50), (75,75,50), (200, 150, 200), (42, 42, 42)]
+  output_frame = input_frame.copy()
+  for num, prob in enumerate(res):
+    cv.rectangle(output_frame, (0,60+num*40), (int(prob*100), 90+num*40), colors[num], -1)
+    cv.putText(output_frame, actions[num], (0, 85+num*40), cv.FONT_HERSHEY_SIMPLEX, 1, 
+        (255,255,255), 2, cv.LINE_AA)
+  return output_frame
