@@ -74,3 +74,13 @@ Later:
 - How much in detail should I go in the paper about the libraries used? Similarly, what should the bulk of the writing be in?
 - Outline OK? 
 - Mode change with sign language: discuss with Dr. B
+
+
+#### Take-aways
+- google doc for draft paper
+Set up study:
+- to what degree does the robot mimick the human movement
+- most importantly have concrete measures
+  - success metrics and derive questions
+  - objectively: to do exact movements
+- study plan middle of next week!

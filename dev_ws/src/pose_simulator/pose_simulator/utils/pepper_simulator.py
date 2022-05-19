@@ -28,7 +28,7 @@ class PepperSimulator(object):
     self.adjust_coordinates(coords)
     #print(f'Moving sim to x,y,z with z being height {coords}')
     ik = p.calculateInverseKinematics(self.bodyUniqueId, endEffectorLinkIndex, coords)
-    joints_to_control = ['lshoulder', 'lelbow', 'hiproll']
+    joints_to_control = ['lshoulder', 'lelbow',]
 
     for i, joint in enumerate(self.joints):
       for j in joints_to_control:
