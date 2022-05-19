@@ -132,21 +132,17 @@ class CvUtils():
         # Viz logic
         if np.unique(self.predictions[-10:])[0]==np.argmax(res):
           if res[np.argmax(res)] > threshold and actions[np.argmax(res)] != 'nothing':
-            if len(self.sentence) > 0:
-              if actions[np.argmax(res)] != self.sentence[-1]:
-                self.sentence.append(actions[np.argmax(res)])
-            else:
-              self.sentence.append(actions[np.argmax(res)])
+            self.sentence.append(actions[np.argmax(res)])
 
-        if len(self.sentence) > 5:
-          self.sentence = self.sentence[-5:]
+       #if len(self.sentence) > 5:
+       #  self.sentence = self.sentence[-5:]
 
         # Viz probabilities
         debug_image = prob_viz(res, actions, debug_image)
 
-      cv.rectangle(debug_image, (0,0), (640, 40), (117, 240, 16), -1)
-      cv.putText(debug_image, ' '.join(self.sentence), (3,30),
-                     cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
+     #cv.rectangle(debug_image, (0,0), (640, 40), (117, 240, 16), -1)
+     #cv.putText(debug_image, ' '.join(self.sentence), (3,30),
+     #               cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
 
     else: self.point_history.append([0,0])
     debug_image = self.draw_point_history(debug_image, self.point_history)

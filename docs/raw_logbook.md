@@ -224,3 +224,7 @@ How should I approach switching modes with gestures. Also should voice recog be 
 
 ## May 17-18th 
 - Working non-stop on LSTM sign recognition
+- LSTM fully working, still needs extra training data but it is working and partially implemented
+
+## May 19th
+- Implement some sign language mode changes

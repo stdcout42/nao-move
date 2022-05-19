@@ -39,6 +39,11 @@ class Feedback(AutoName):
   SLOWER = auto()
   DRAW = auto()
 
+class SignMode(AutoName):
+  WAITING_FOR_HEY = auto()
+  HEY_RECEIVED = auto()
+  OFF = auto()
+
 class SpeechMode(AutoName):
   CORRECTION = auto()
   LISTEN = auto()
@@ -52,12 +57,14 @@ class SimSubscriber(Node):
   PEPPER_SIM = True
   num_guesses = 0
   words_similar_to_no = ['no', 'know']
+  sign_mode = SignMode.WAITING_FOR_HEY
 
   def __init__(self):
     super().__init__('sim_subscriber')
     self.mode = Mode.IMITATE
     self.speech_mode = SpeechMode.LISTEN
     self.speech_history = []
+    self.sign_lang_history = []
     self.trajectory = []
     self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
     self.guessed_word = ''
@@ -83,6 +90,12 @@ class SimSubscriber(Node):
         self.speech_callback,
         10)
     self.speech_subscription
+    self.sign_lang_subscription = self.create_subscription(
+        String,
+        'sign_lang',
+        self.sign_lang_callback,
+        10)
+    self.sign_lang_subscription
 
   def on_press(self,  key):
     try:
@@ -139,6 +152,21 @@ class SimSubscriber(Node):
       self.process_speech()
     else:
       self.process_speech_correction()
+
+  def sign_lang_callback(self, msg):
+    self.get_logger().info('Incoming sign language: "%s"' % msg.data)
+    sign_lang = msg.data
+    self.sign_lang_history.insert(0, sign_lang)
+    if sign_lang == 'hey' and self.sign_mode == SignMode.WAITING_FOR_HEY:
+      self.sign_mode = SignMode.HEY_RECEIVED
+      self.text_to_speech('What\'s up?')
+    elif self.sign_mode == SignMode.HEY_RECEIVED:
+      if sign_lang == 'record':
+        self.set_mode(Mode.RECORD)
+        self.sign_mode = SignMode.WAITING_FOR_HEY
+      if sign_lang == 'stop':
+        self.set_mode(Mode.IMITATE)
+        self.sign_mode = SignMode.WAITING_FOR_HEY
 
   # TODO: Catch all edge cases where certain mode changes are not allowed
   def process_speech(self, keyword=''):
