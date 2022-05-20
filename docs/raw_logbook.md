@@ -228,3 +228,14 @@ How should I approach switching modes with gestures. Also should voice recog be 
 
 ## May 19th
 - Implement some sign language mode changes
+
+## May 20th
+- Trained a new lstm classifier (incl. data) -- however this system can still be improved (by adding or removing classes, by changing the gestures for the sign language, and of course by simply growing the data set and training it)
+- Got stuck trying to process callbacks outside of the main thread. This was simply solved by manually
+calling `Node.spin_once`... But took better half of my time today.
+- Implemented visuals to show mode changes on webcam feedback
+- Hopefully can implement a robust sign language system today, max tomorrow.
+Possible ideas to improve ROS architecture:
+- use services to change mode (response being succesful feedback change or not, which can show the mode change - not having to rely on listening to a stream of topic as it is now)
+- keep topic for imitating since that is a stream that constantly needs to be monitored
+- use action for replay, allowing hte replay to be pre-emptively canceled

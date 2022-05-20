@@ -1,6 +1,5 @@
 import time
 import threading
-import os
 import copy
 import numpy as np
 import rclpy
@@ -19,7 +18,7 @@ from os.path import join
 
 
 class AutoName(Enum):
-  def _generate_next_value_(name, start, count, last_values):
+  def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
     return name
 
 class Mode(AutoName):
@@ -73,6 +72,7 @@ class SimSubscriber(Node):
     self.keyboard_listener.start()
     self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
     self.create_subscriptions()
+    self.mode_publisher = self.create_publisher(String, 'mode', 10)
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
@@ -80,22 +80,21 @@ class SimSubscriber(Node):
         'movement_coords', 
         self.coords_callback, 
         10)
-    self.coords_subscription # prevent unused variable warning
+
     self.gestures_subscription = self.create_subscription(
         String, 'gestures', self.gestures_callback, 10)
-    self.gestures_subscription
+
     self.speech_subscription = self.create_subscription(
         String,
         'speech',
         self.speech_callback,
         10)
-    self.speech_subscription
+
     self.sign_lang_subscription = self.create_subscription(
         String,
         'sign_lang',
         self.sign_lang_callback,
         10)
-    self.sign_lang_subscription
 
   def on_press(self,  key):
     try:
@@ -134,8 +133,8 @@ class SimSubscriber(Node):
   def coords_callback(self, msg):
     #self.get_logger().info('Incoming coords: "%s"' % f'{msg.x}, {msg.y}, {msg.z}')
     self.last_coords_vec = msg
-    if self.mode == Mode.IMITATE or self.mode == Mode.RECORD:
-      draw_tr = True if self.mode == Mode.RECORD else False
+    if self.mode in (Mode.IMITATE, Mode.RECORD):
+      draw_tr = self.mode == Mode.RECORD 
       coords = [msg.x, msg.y, msg.z]
       if not self.PEPPER_SIM:
         # TODO: move this to the jaco simulator file
@@ -154,19 +153,27 @@ class SimSubscriber(Node):
       self.process_speech_correction()
 
   def sign_lang_callback(self, msg):
-    self.get_logger().info('Incoming sign language: "%s"' % msg.data)
+    self.get_logger().info(f'Incoming sign language: {msg.data}')
     sign_lang = msg.data
     self.sign_lang_history.insert(0, sign_lang)
-    if sign_lang == 'hey' and self.sign_mode == SignMode.WAITING_FOR_HEY:
-      self.sign_mode = SignMode.HEY_RECEIVED
-      self.text_to_speech('What\'s up?')
-    elif self.sign_mode == SignMode.HEY_RECEIVED:
-      if sign_lang == 'record':
-        self.set_mode(Mode.RECORD)
-        self.sign_mode = SignMode.WAITING_FOR_HEY
-      if sign_lang == 'stop':
+    if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
+        and self.mode != Mode.RECORD:
+          self.sign_mode = SignMode.HEY_RECEIVED
+          self.text_to_speech('What\'s up?')
+    elif self.mode == Mode.RECORD and sign_lang == Mode.IMITATE.value:
         self.set_mode(Mode.IMITATE)
-        self.sign_mode = SignMode.WAITING_FOR_HEY
+    elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
+      if sign_lang == Mode.RECORD.name.lower():
+        self.set_mode(Mode.RECORD)
+      elif sign_lang == Mode.IMITATE.value:
+        self.set_mode(Mode.IMITATE)
+      elif sign_lang == Mode.REPLAY.name.lower() and self.trajectory \
+          and self.mode == Mode.IMITATE:
+        threading.Thread(target=self.replay_movement()).start()
+      elif sign_lang == Mode.FEEDBACK.name.lower() and self.trajectory:
+        self.set_mode(Mode.FEEDBACK)
+
+      self.sign_mode = SignMode.WAITING_FOR_HEY
 
   # TODO: Catch all edge cases where certain mode changes are not allowed
   def process_speech(self, keyword=''):
@@ -244,7 +251,8 @@ class SimSubscriber(Node):
     elif keyword == 'slower':
       if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
     self.prev_trajectory = copy.deepcopy(self.trajectory)
-    self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c-dz), self.trajectory))
+    self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c-dz), 
+      self.trajectory))
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.text_to_speech(f'Trajectory modified to {keyword}')
     prev_color = get_random_color()
@@ -268,11 +276,16 @@ class SimSubscriber(Node):
       self.mode = mode 
       #self.play_sound(Sound.NOTIFY)
       if sound: self.text_to_speech(f'Change mode to {mode.name}')
+      msg = String()
+      msg.data = mode.name
+      self.mode_publisher.publish(msg)
+      pub = self.create_publisher(String, 'test', 10)
+      pub.publish(msg)
       self.get_logger().info(f'Mode set to {mode.name}')
 
   def replay_movement(self, num_times=3):
     if self.mode != Mode.RECORD:
-      if self.trajectory != []:
+      if self.trajectory:
         self.set_mode(Mode.REPLAY)
         for _ in range(num_times):
           if self.mode != Mode.REPLAY: break

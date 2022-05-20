@@ -45,6 +45,7 @@ class CvUtils():
   z_coord = -0.3
   mp_drawing = mp.solutions.drawing_utils # Drawing utilities
   mp_drawing_styles = mp.solutions.drawing_styles
+  robot_mode = 'IMITATE'
   sequence = []
   sentence = []
   predictions = []
@@ -71,9 +72,10 @@ class CvUtils():
     
    # Hands detections
     right_fist_detected =  False
-    threshold = 0.5
+    threshold = 0.7
     sequence_length = 30
-    actions = np.array(['yes', 'no', 'nothing', 'play', 'hey', 'record', 'feedback', 'save'])
+    #actions = np.array(['yes', 'no', 'nothing', 'play', 'hey', 'record', 'feedback', 'save'])
+    actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop'])
 
 
     if results.left_hand_landmarks or results.right_hand_landmarks:
@@ -131,20 +133,22 @@ class CvUtils():
           
         # Viz logic
         if np.unique(self.predictions[-10:])[0]==np.argmax(res):
-          if res[np.argmax(res)] > threshold and actions[np.argmax(res)] != 'nothing':
-            self.sentence.append(actions[np.argmax(res)])
+          if res[np.argmax(res)] > threshold:
+            if len(self.sentence) > 0:
+              if actions[np.argmax(res)] != self.sentence[-1]:
+                self.sentence.append(actions[np.argmax(res)])
+            else:
+                self.sentence.append(actions[np.argmax(res)])
 
-       #if len(self.sentence) > 5:
-       #  self.sentence = self.sentence[-5:]
 
         # Viz probabilities
         debug_image = prob_viz(res, actions, debug_image)
 
-     #cv.rectangle(debug_image, (0,0), (640, 40), (117, 240, 16), -1)
-     #cv.putText(debug_image, ' '.join(self.sentence), (3,30),
-     #               cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
-
+     
     else: self.point_history.append([0,0])
+    cv.rectangle(debug_image, (140,0), (400, 40), (117, 240, 16), -1)
+    cv.putText(debug_image, f'Mode: {self.robot_mode}', (143,30),
+                   cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
     debug_image = self.draw_point_history(debug_image, self.point_history)
 
     cv.imshow('Hello world.', debug_image)
@@ -164,7 +168,9 @@ class CvUtils():
     self.keypoint_classifier_labels = [row[0] for row in self.keypoint_classifier_labels]
   
   def load_signlang_classifier(self):
-    self.signlang_classifier = tf.keras.models.load_model('src/pose_simulator/pose_simulator/utils/best_model_90shape.h5')
+    #self.signlang_classifier = tf.keras.models.load_model('src/pose_simulator/pose_simulator/utils/best_model_90shape.h5')
+    self.signlang_classifier = tf.keras.models.load_model(
+        'src/pose_simulator/pose_simulator/utils/05201104.h5')
 
   def calc_bounding_rect(self, image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
@@ -293,7 +299,11 @@ class CvUtils():
       calc_rh = self.calc_landmark_list(image, results.right_hand_landmarks)
       pre_rh = self.pre_process_landmark(calc_rh)
 
-    return np.concatenate((np.array(pre_lh), np.array(pre_rh), nose_landmarks, hand_world_landmarks))
+    return np.concatenate(
+        (np.array(pre_lh), np.array(pre_rh), nose_landmarks, hand_world_landmarks))
+  
+  def set_robot_mode(self, mode):
+    self.robot_mode = mode 
 
 
 def mediapipe_detection(image, model):
