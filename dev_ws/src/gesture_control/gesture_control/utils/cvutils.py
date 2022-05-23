@@ -37,9 +37,7 @@ class CvFpsCalc():
 
 class CvUtils():
   mp_drawing = mp.solutions.drawing_utils
-  #mp_pose = mp.solutions.pose
   mp_holistic = mp.solutions.holistic
-  #mp_hands = mp.solutions.hands
   fpscalc = CvFpsCalc()
   history_length = 16
   z_coord = -0.3
@@ -52,8 +50,6 @@ class CvUtils():
 
   def __init__(self, video_src=0):
     self.cap = cv.VideoCapture(video_src)
-    #self.pose = self.mp_pose.Pose()
-    #self.hands = self.mp_hands.Hands(max_num_hands=2)
     self.holistic = self.mp_holistic.Holistic()
     self.load_keypoint_classifier()
     self.load_signlang_classifier()

@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 
 from geometry_msgs.msg import Vector3
+from nao_move_interfaces.srv import Command
 from std_msgs.msg import String
 from .utils.cvutils import CvUtils
 
@@ -17,6 +18,12 @@ class PosePublisher(Node):
     self.publisher_signlang = self.create_publisher(String, 'sign_lang', 10)
     self.mode_subscription = self.create_subscription(String, 
         'mode', self.mode_callback, 10)
+    self.cli = self.create_client(Command, 'command_service')
+    while not self.cli.wait_for_service(timeout_sec=1.0):
+      self.get_logger().info('service not avail, waiting...')
+    self.req = Command.Request()
+    self.future = None
+    self.send_request()
 
     self.process_stream()
   
@@ -27,6 +34,8 @@ class PosePublisher(Node):
         stat = self.cvUtils.process_stream()
         self.publish_coords()
         self.publish_signlang()
+
+        
         rclpy.spin_once(self, timeout_sec=0.0001)
 
       except KeyboardInterrupt:
@@ -34,6 +43,23 @@ class PosePublisher(Node):
         sys.exit()
     self.cvUtils.cv_shutdown()
     sys.exit()
+
+  def check_for_command_response(self):
+    if self.future and self.future.done():
+      try:
+        response = self.future.result()
+      except Exception as e:
+        self.get_logger().info('service call failed')
+      else:
+        self.get_logger().info(f'response: {response}')
+        self.future = None 
+
+
+
+  def send_request(self):
+    self.req.command_type = 'sign'
+    self.req.command = 'record'
+    self.future = self.cli.call_async(self.req)
 
   def publish_coords(self):
     coords = self.cvUtils.right_wrist_world_coords
@@ -55,6 +81,7 @@ class PosePublisher(Node):
         msg.data = self.cvUtils.sentence[-1]
         self.publisher_signlang.publish(msg)
         self.sign_languages_published += 1
+        self.send_request()
   
   def mode_callback(self, msg):
     new_mode = msg.data

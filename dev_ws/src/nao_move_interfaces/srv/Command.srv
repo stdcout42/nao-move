@@ -1,0 +1,5 @@
+string command_type
+string command
+---
+bool mode_changed
+string new_mode

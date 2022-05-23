@@ -239,3 +239,11 @@ Possible ideas to improve ROS architecture:
 - use services to change mode (response being succesful feedback change or not, which can show the mode change - not having to rely on listening to a stream of topic as it is now)
 - keep topic for imitating since that is a stream that constantly needs to be monitored
 - use action for replay, allowing hte replay to be pre-emptively canceled
+
+## May 21st-22nd
+Spent most of the weekend experimenting with different sign language models / datasets 
+
+## May 22
+- Recorded new data set which has the best accuracy thus far
+- Possibly going to expand the sign language model (more classes) as well as changing some gestures to improve classification accuracy. Currently there are 11 signs - thinking of adding 'bigger'/'smaller' to them as tthese are not in there currently. 
+- Started writing the new architecture using services (see the idea on may 20th) 

@@ -1,7 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-
+from py_pubsub.second_publisher import SecondPublisher
+from rclpy.executors import MultiThreadedExecutor
 
 class MinimalPublisher(Node):
   def __init__(self):
@@ -20,13 +21,22 @@ class MinimalPublisher(Node):
 
 def main(args=None):
   rclpy.init(args=args)
+  try:
+    minimal_publisher = MinimalPublisher()
+    second_publisher = SecondPublisher()
+    
+    executor = MultiThreadedExecutor()
+    executor.add_node(minimal_publisher)
+    executor.add_node(second_publisher)
 
-  minimal_publisher = MinimalPublisher()
-
-  rclpy.spin(minimal_publisher)
-
-  minimal_publisher.destroy_node()
-  rclpy.shutdown()
+    try:
+      executor.spin()
+    finally:
+      executor.shutdown()
+      minimal_publisher.destroy_node()
+      second_publisher.destroy_node()
+  finally:
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':

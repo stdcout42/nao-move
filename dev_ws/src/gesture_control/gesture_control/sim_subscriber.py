@@ -7,6 +7,7 @@ from enum import Enum, auto
 from gtts import gTTS
 from tempfile import NamedTemporaryFile
 from rclpy.node import Node
+from nao_move_interfaces.srv import Command
 from std_msgs.msg import String
 from pynput import keyboard
 from playsound import playsound
@@ -73,6 +74,20 @@ class SimSubscriber(Node):
     self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
     self.create_subscriptions()
     self.mode_publisher = self.create_publisher(String, 'mode', 10)
+    self.command_srv = self.create_service(Command, 'command_service', self.command_callback)
+
+  def command_callback(self, request, response):
+    curr_mode = self.mode
+    self.get_logger().info('received somthing!')
+    if request.command_type == 'speech':
+      #TODO
+      pass
+    else: # sign lang command
+      response.mode_changed = False
+      response.new_mode = ''
+      return response
+      #TODO
+
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
