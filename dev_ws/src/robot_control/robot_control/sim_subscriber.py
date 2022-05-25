@@ -3,6 +3,7 @@ import threading
 import copy
 import numpy as np
 import rclpy
+import math
 from enum import Enum, auto
 from gtts import gTTS
 from tempfile import NamedTemporaryFile
@@ -36,6 +37,7 @@ class Feedback(AutoName):
   BIGGER = auto()
   FASTER = auto()
   SLOWER = auto()
+  ROLL = auto()
   DRAW = auto()
 
 class SignMode(AutoName):
@@ -200,10 +202,13 @@ class SimSubscriber(Node):
     elif keyword == Mode.FEEDBACK.name.lower():
       if self.mode != Mode.RECORD or self.mode != Mode.REPLAY:
         self.set_mode(Mode.FEEDBACK)
-    elif self.mode == Mode.FEEDBACK and keyword in self.feedback_names: 
+    elif self.mode == Mode.FEEDBACK and (keyword in self.feedback_names \
+        or keyword in ('whoa', 'role', 'ross', 'room')):
       if keyword == Feedback.DRAW.name.lower(): 
         self.simulator.draw_trajectory(self.trajectory, get_random_color())
         self.text_to_speech('Drawing trajectory')
+      elif keyword in ('whoa', 'role', 'ross'):
+        self.change_trajectory('roll')
       else: self.change_trajectory(keyword)
     else:
       self.text_to_speech(f'Unrecognized command {keyword}')
@@ -240,27 +245,31 @@ class SimSubscriber(Node):
       self.get_logger().info(f'Speech mode set to {mode.name}')
 
   def change_trajectory(self, keyword):
-    dx = dy = dz = 0
-    c = 1.0
-    if keyword == 'up':
-      dz = 0.1
-    elif keyword == 'down':
-      dz = -0.1
-    elif keyword == 'right':
-      dx = 0.1 
-    elif keyword == 'left':
-      dx = -0.1
-    elif keyword == 'bigger':
-      c = 1.1
-    elif keyword == 'smaller':
-      c = 0.9
-    elif keyword == 'faster':
-      if self.REPLAY_SPEED < self.MAX_REPLAY_SPEED: self.REPLAY_SPEED += 1
-    elif keyword == 'slower':
-      if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
     self.prev_trajectory = copy.deepcopy(self.trajectory)
-    self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c-dz), 
-      self.trajectory))
+    if keyword not in ('roll'):
+      dx = dy = dz = 0
+      c = 1.0
+      if keyword == 'up':
+        dz = 0.1
+      elif keyword == 'down':
+        dz = -0.1
+      elif keyword == 'right':
+        dx = 0.1 
+      elif keyword == 'left':
+        dx = -0.1
+      elif keyword == 'bigger':
+        c = 1.1
+      elif keyword == 'smaller':
+        c = 0.9
+      elif keyword == 'faster':
+        if self.REPLAY_SPEED < self.MAX_REPLAY_SPEED: self.REPLAY_SPEED += 1
+      elif keyword == 'slower':
+        if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
+      self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c-dz), 
+        self.trajectory))
+    else:
+      self.trajectory = list(map(lambda v: rotate_vector3_xaxis(math.pi/8, v), self.trajectory))
+
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.text_to_speech(f'Trajectory modified to {keyword}')
     prev_color = get_random_color()
@@ -311,6 +320,17 @@ def adjustScaleJaco(coords):
     x = coords[0] - 300
     z = 450 - coords[2]
     return [x * (1.0/300), coords[1]*2.5, z * (1.0/450)]
+
+# matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
+def rotate_vector3_xaxis(angle, vector):
+  rot_matrix = np.array([
+    [1, 0, 0],
+    [0, math.cos(angle), -math.sin(angle)],
+    [0, math.sin(angle), math.cos(angle)]
+    ])
+
+  t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))
+  return Vector3(x=t_x[0], y=t_x[1], z=t_x[2])
 
 def get_random_color(): return np.random.uniform(0.2, 1, (3)).tolist()
 

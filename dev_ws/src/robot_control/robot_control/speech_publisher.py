@@ -54,14 +54,9 @@ def main(args=None):
   rclpy.init(args=args)
   speech_publisher = SpeechPublisher()
 
-  try:
-    rclpy.spin(speech_publisher)
-  except KeyboardInterrupt:
-    speech_publisher.destroy_node()
-    rclpy.shutdown()
-  finally:
-    speech_publisher.destroy_node()
-    rclpy.shutdown()
+  rclpy.spin(speech_publisher)
+  speech_publisher.destroy_node()
+  rclpy.shutdown()
 
 
 if __name__ == '__main__':

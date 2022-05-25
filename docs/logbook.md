@@ -84,3 +84,14 @@ Set up study:
   - success metrics and derive questions
   - objectively: to do exact movements
 - study plan middle of next week!
+
+### Week 8
+#### What I've been doing
+- Implemented 11 signs for sign language
+- Feedback on webcam feed
+- Implementation to allow pepper to move
+#### Questions
+1. 11 signs are quite a bit -- and it's not even complete (rotation/scaling of is not in the signs). Is this OK? This has a learning curve. How can I work with this? Print out a poster? Show a demo? Give them 10 min of training?
+2. When the trajectories are scaled/rotated, the centroid moves around. Should I translate this back to the old ccentroid?
+3. How do I tell if a trajectory is within the robot arm's reach?
+

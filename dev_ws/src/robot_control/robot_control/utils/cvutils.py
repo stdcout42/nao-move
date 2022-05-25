@@ -82,7 +82,7 @@ class CvUtils():
     #actions = np.array(['yes', 'no', 'nothing', 'play', 'hey', 'record', 'feedback', 'save'])
     #actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop'])
     #actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop', 'follow'])
-    actions = np.array(['play', 'hey', 'record', 'feedback', 'stop', 'follow', 'nothing',
+    actions = np.array(['replay', 'hey', 'record', 'feedback', 'stop', 'follow', 'nothing',
                     'left', 'right', 'up', 'down'])
 
     if results.left_hand_landmarks or results.right_hand_landmarks:
