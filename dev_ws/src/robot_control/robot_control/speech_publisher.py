@@ -26,7 +26,7 @@ class SpeechPublisher(Node):
 
   def classify_stream(self):
     self.get_logger().info('speech in the house')
-    model = Model('src/arm_simulator/arm_simulator/vosk_model')
+    model = Model('src/robot_control/robot_control/vosk_model')
     recognizer = KaldiRecognizer(model, 16000)
     pa = pyaudio.PyAudio()
     stream = pa.open(format=pyaudio.paInt16, rate=16000, channels=1, input=True, frames_per_buffer=8192, input_device_index=self.MIC_INPUT)
@@ -52,14 +52,17 @@ class SpeechPublisher(Node):
     
 def main(args=None):
   rclpy.init(args=args)
-
   speech_publisher = SpeechPublisher()
 
-  rclpy.spin(speech_publisher)
+  try:
+    rclpy.spin(speech_publisher)
+  except KeyboardInterrupt:
+    speech_publisher.destroy_node()
+    rclpy.shutdown()
+  finally:
+    speech_publisher.destroy_node()
+    rclpy.shutdown()
 
-  speech_publisher.destroy_node()
-
-  rclpy.shutdown()
 
 if __name__ == '__main__':
   main()
