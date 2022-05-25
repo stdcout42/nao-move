@@ -53,7 +53,6 @@ class SimSubscriber(Node):
   REPLAY_SPEED = 15
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
-  SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
   PEPPER_SIM = True
   num_guesses = 0
   words_similar_to_no = ['no', 'know']
@@ -77,9 +76,11 @@ class SimSubscriber(Node):
     self.command_srv = self.create_service(Command, 'command_service', self.command_callback)
 
   def command_callback(self, request, response):
+    self.get_logger().info('got mail')
     if request.command_type == 'speech':
-      #TODO
-      pass
+      response.mode_changed = False
+      response.mode = 'IMITATION'
+      return response
     else: # sign lang command
       return self.process_sign_lang(request.command, response) 
 
@@ -152,10 +153,6 @@ class SimSubscriber(Node):
     except AttributeError:
       pass
       #self.get_logger().info(f'special key {key} pressed')
-
-  def play_sound(self, sound):
-    path = join(self.SOUNDFX_PATH, sound.value)
-    threading.Thread(target=playsound, args=(path,)).start()
 
   def on_release(self, key):
     #self.get_logger().info(f'key {key} released')
@@ -338,7 +335,6 @@ class SimSubscriber(Node):
   def set_mode(self, mode, sound=True):
     if self.mode != mode:
       self.mode = mode 
-      #self.play_sound(Sound.NOTIFY)
       if sound: self.text_to_speech(f'Change mode to {mode.name}')
       msg = String()
       msg.data = mode.name

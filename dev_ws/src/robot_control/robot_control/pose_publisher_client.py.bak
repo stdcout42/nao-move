@@ -1,36 +1,44 @@
 import sys
 import rclpy
+import threading
 from rclpy.node import Node
 
+from robot_control.speech_publisher import SpeechPublisher
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import String
 from nao_move_interfaces.srv import Command
 from .utils.cvutils import CvUtils
 
 class PosePublisher(Node):
-  cvUtils = CvUtils()
   sign_languages_published = 0
+  last_mode_received = 'IMITATE'
 
-  def __init__(self):
+  def __init__(self, cv_utils):
     super().__init__('pose_publisher')
     self.publisher_ = self.create_publisher(Vector3, 'movement_coords', 10)
     self.cli = self.create_client(Command, 'command_service')
+    self.cvUtils = cv_utils
     while not self.cli.wait_for_service(timeout_sec=1.0):
       self.get_logger().info('command service not avail, waiting...')
     self.req = Command.Request()
-    self.future = None
 
-    self.process_stream()
+    self.mode_subscription = self.create_subscription(String, 
+        'mode', self.mode_callback, 10)
+
+    self.future = None
+    threading.Thread(target=self.process_stream()).start()
   
   def process_stream(self):
     stat = 0
+    self.get_logger().info('in here')
     while rclpy.ok() and not stat:
       try:
         stat = self.cvUtils.process_stream()
         self.publish_coords()
         self.check_and_send_command_req()
         self.check_and_process_command_response()
+        rclpy.spin_once(self, timeout_sec=0.001)
         
-        rclpy.spin_once(self, timeout_sec=0.0001)
 
       except KeyboardInterrupt:
         self.cvUtils.cv_shutdown()
@@ -72,13 +80,21 @@ class PosePublisher(Node):
       #print(coords_vec)
       self.publisher_.publish(coords_vec)
 
+  def mode_callback(self, msg):
+    new_mode = msg.data
+    if self.last_mode_received != new_mode:
+      self.last_mode_received = new_mode
+      self.cvUtils.set_robot_mode(new_mode)
+
+
 def main(args=None):
   rclpy.init(args=args)
-
-  pose_publisher  = PosePublisher()
+  
+  cvUtils = CvUtils()
+  pose_publisher  = PosePublisher(cvUtils)
 
   rclpy.spin(pose_publisher)
-  pose_publisher.destroy_node()
+
   rclpy.shutdown()
 
 if __name__ == '__main__':

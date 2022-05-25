@@ -6,6 +6,7 @@ import cv2 as cv
 import numpy as np
 import mediapipe as mp
 import tensorflow as tf
+from enum import Enum, auto
 from .keypoint_classifier.keypoint_classifier import KeyPointClassifier
 
 """
@@ -16,29 +17,31 @@ with influences of kinivi from the repo
 https://github.com/kinivi/hand-gesture-recognition-mediapipe, all
 modularized for the task at hand.
 """
-class CvFpsCalc():
-  def __init__(self, buffer_len=1):
-    self._start_tick = cv.getTickCount()
-    self._freq = 1000.0 / cv.getTickFrequency()
-    self._difftimes = deque(maxlen=buffer_len)
+class AutoName(Enum):
+  def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
+    return name
 
-  def get(self):
-    current_tick = cv.getTickCount()
-    different_time = (current_tick - self._start_tick) * self._freq
-    self._start_tick = current_tick
+class CircleDirection(AutoName):
+  FORWARD = auto()
+  RIGHT = auto()
+  BACK = auto()
+  LEFT = auto()
+  STOP = auto()
 
-    self._difftimes.append(different_time)
 
-    fps = 1000.0 / (sum(self._difftimes) / len(self._difftimes))
-    fps_rounded = round(fps, 2)
-
-    return fps_rounded
+class Circle():
+  def __init__(self, x, y, r, direction, color=(10, 220, 10), thickness=1):
+    self.x = x
+    self.y = y
+    self.r = r
+    self.color = color
+    self.direction = direction
+    self.thickness = 1
 
 
 class CvUtils():
   mp_drawing = mp.solutions.drawing_utils
   mp_holistic = mp.solutions.holistic
-  fpscalc = CvFpsCalc()
   history_length = 16
   z_coord = -0.3
   mp_drawing = mp.solutions.drawing_utils # Drawing utilities
@@ -47,6 +50,12 @@ class CvUtils():
   sequence = []
   sentence = []
   predictions = []
+  fwd_circle = Circle(320, 120, 50, CircleDirection.FORWARD)
+  right_circle = Circle(460, 240, 50, CircleDirection.RIGHT)
+  left_circle = Circle(180, 240, 50, CircleDirection.LEFT)
+  bck_circle = Circle(320, 360, 50, CircleDirection.BACK)
+  movement_circles = [fwd_circle, right_circle, bck_circle, left_circle]
+  circle_dir_selected = CircleDirection.STOP
 
   def __init__(self, video_src=0):
     self.cap = cv.VideoCapture(video_src)
@@ -72,10 +81,9 @@ class CvUtils():
     sequence_length = 30
     #actions = np.array(['yes', 'no', 'nothing', 'play', 'hey', 'record', 'feedback', 'save'])
     #actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop'])
-    actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop', 'follow'])
+    #actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop', 'follow'])
     actions = np.array(['play', 'hey', 'record', 'feedback', 'stop', 'follow', 'nothing',
                     'left', 'right', 'up', 'down'])
-
 
     if results.left_hand_landmarks or results.right_hand_landmarks:
       if results.right_hand_landmarks:
@@ -88,7 +96,6 @@ class CvUtils():
         debug_image = self.draw_bounding_rect(debug_image, brect)
         debug_image = self.draw_info_text(debug_image, brect, handedness,
              self.keypoint_classifier_labels[hand_sign_id])
-
       if results.left_hand_landmarks:
         handedness = 'right' # flipped
         brect = self.calc_bounding_rect(debug_image, results.left_hand_landmarks) 
@@ -103,13 +110,16 @@ class CvUtils():
           self.point_history.append(landmark_list[0]) 
           right_fist_detected = True
 
-        
+          if self.robot_mode == 'MOVE':
+            self.set_movement_direction(debug_image, landmark_list[0][0],landmark_list[0][1])
+ 
       if results.pose_landmarks and right_fist_detected:
         self.right_wrist_coords = [
             results.pose_landmarks.landmark[15].x, 
             results.pose_landmarks.landmark[15].z,
             results.pose_landmarks.landmark[15].y,
         ]
+         
         self.right_wrist_world_coords = [
             results.pose_world_landmarks.landmark[15].x, 
             results.pose_world_landmarks.landmark[15].z,
@@ -145,14 +155,14 @@ class CvUtils():
       # Viz probabilities
       debug_image = prob_viz(res, actions, debug_image)
 
-
+    if self.robot_mode == 'MOVE':
+      self.draw_movement_circles(debug_image)
     cv.rectangle(debug_image, (140,0), (400, 40), (117, 240, 16), -1)
     cv.putText(debug_image, f'Mode: {self.robot_mode}', (143,30),
                    cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
     debug_image = self.draw_point_history(debug_image, self.point_history)
-
+   
     cv.imshow('Hello world.', debug_image)
-    #print(self.fpscalc.get())
 
     if cv.waitKey(10) & 0xFF == ord('q'):
       return -1
@@ -162,7 +172,7 @@ class CvUtils():
   def load_keypoint_classifier(self):
     self.keypoint_classifier = KeyPointClassifier()
     keypoint_labels_file = open(
-        'src/pose_simulator/pose_simulator/utils/keypoint_classifier/keypoint_classifier_label.csv',
+        'src/robot_control/robot_control/utils/keypoint_classifier/keypoint_classifier_label.csv',
         encoding='utf-8-sig')
     self.keypoint_classifier_labels = csv.reader(keypoint_labels_file)
     self.keypoint_classifier_labels = [row[0] for row in self.keypoint_classifier_labels]
@@ -170,7 +180,7 @@ class CvUtils():
   def load_signlang_classifier(self):
     #self.signlang_classifier = tf.keras.models.load_model('src/pose_simulator/pose_simulator/utils/best_model_90shape.h5')
     self.signlang_classifier = tf.keras.models.load_model(
-        'src/pose_simulator/pose_simulator/utils/05231109.h5')
+        'src/robot_control/robot_control/utils/05231109.h5')
 
   def calc_bounding_rect(self, image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
@@ -305,6 +315,27 @@ class CvUtils():
   def set_robot_mode(self, mode):
     self.robot_mode = mode 
 
+  def draw_movement_circles(self, image):
+    for circle in self.movement_circles:
+      cv.circle(image, (circle.x, circle.y), 
+          circle.r, circle.color, circle.thickness)
+
+
+  def set_movement_direction(self, image, x_pos, y_pos):
+    circle_dir = CircleDirection.STOP
+    for circle in self.movement_circles:
+      if xy_in_circle(x_pos, y_pos, circle):
+        circle.color = (220, 10, 10)
+        circle.thickness = -1
+        circle_dir = circle.direction
+      else: 
+        cv.putText(image, circle.direction.name, (circle.x-25, circle.y), cv.FONT_HERSHEY_PLAIN,
+          1, (255, 255, 255), 1, cv.LINE_AA)
+        circle.color = (10, 220, 10) 
+        circle.thickness = 2
+    self.circle_dir_selected = circle_dir
+
+
 
 def mediapipe_detection(image, model):
   image = cv.flip(image, 1)
@@ -324,3 +355,6 @@ def prob_viz(res, actions, input_frame):
     cv.putText(output_frame, actions[num], (0, 85+num*40), cv.FONT_HERSHEY_SIMPLEX, 1, 
         (255,255,255), 2, cv.LINE_AA)
   return output_frame
+
+def xy_in_circle(x, y, circle):
+  return ((x - circle.x)**2 + (y - circle.y)**2) < circle.r**2

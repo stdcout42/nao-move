@@ -243,7 +243,16 @@ Possible ideas to improve ROS architecture:
 ## May 21st-22nd
 Spent most of the weekend experimenting with different sign language models / datasets 
 
-## May 22
+## May 23
 - Recorded new data set which has the best accuracy thus far
 - Possibly going to expand the sign language model (more classes) as well as changing some gestures to improve classification accuracy. Currently there are 11 signs - thinking of adding 'bigger'/'smaller' to them as tthese are not in there currently. 
 - Started writing the new architecture using services (see the idea on may 20th) 
+
+## May 24
+- Got services working and wrote a custom srv message for it -- but seems like it is impossible to share an object between two ros nodes running from two different ROS processes, therefore the whole idea of using the response from the service cannot be implemented, without the use of topics. Worked on this the whole morning/afternoon and will not ditch the idea.
+- Plus side: learned a lot
+
+## May 25th
+- Created custom message nao\_move\_interfaces/msg/BotState.msg
+- Added new mode: _move_ which allows the end user to move the robot 
+

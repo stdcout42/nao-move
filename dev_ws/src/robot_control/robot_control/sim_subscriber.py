@@ -7,16 +7,14 @@ from enum import Enum, auto
 from gtts import gTTS
 from tempfile import NamedTemporaryFile
 from rclpy.node import Node
-from nao_move_interfaces.srv import Command
 from std_msgs.msg import String
+from nao_move_interfaces.msg import BotState 
 from pynput import keyboard
 from playsound import playsound
 from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
 from .utils.pepper_simulator import PepperSimulator
 from os.path import join
-
-
 
 class AutoName(Enum):
   def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
@@ -27,6 +25,7 @@ class Mode(AutoName):
   RECORD = auto()
   REPLAY = auto()
   FEEDBACK = auto()
+  MOVE = auto()
 
 class Feedback(AutoName):
   UP = auto()
@@ -73,54 +72,20 @@ class SimSubscriber(Node):
     self.keyboard_listener.start()
     self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
     self.create_subscriptions()
-    self.mode_publisher = self.create_publisher(String, 'mode', 10)
-    self.command_srv = self.create_service(Command, 'command_service', self.command_callback)
-
-  def command_callback(self, request, response):
-    if request.command_type == 'speech':
-      #TODO
-      pass
-    else: # sign lang command
-      return self.process_sign_lang(request.command, response) 
-
-  def process_sign_lang(self, sign_lang, response):
-    curr_mode = self.mode
-    self.sign_lang_history.insert(0, sign_lang)
-    if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
-        and self.mode != Mode.RECORD:
-      self.sign_mode = SignMode.HEY_RECEIVED
-      self.text_to_speech('Sign the next command')
-    elif self.mode == Mode.RECORD and sign_lang == Mode.IMITATE.value:
-      self.set_mode(Mode.IMITATE)
-    elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
-      if sign_lang == Mode.RECORD.name.lower():
-        self.set_mode(Mode.RECORD)
-      elif sign_lang == Mode.IMITATE.value:
-        self.set_mode(Mode.IMITATE)
-      elif sign_lang == Mode.REPLAY.name.lower() and self.trajectory \
-          and self.mode == Mode.IMITATE:
-        threading.Thread(target=self.replay_movement()).start()
-      elif sign_lang == Mode.FEEDBACK.name.lower() and self.trajectory:
-        self.set_mode(Mode.FEEDBACK)
-      elif self.mode == Mode.FEEDBACK and sign_lang in ('left', 'right', 'up', 'down'):
-        self.change_trajectory(sign_lang)
-
-      self.sign_mode = SignMode.WAITING_FOR_HEY
-    response.mode_changed = curr_mode != self.mode
-    response.mode = self.mode.name
-    response.info = 'cool bneans'
-    return response
-
+    self.publisher_bot_state = self.create_publisher(BotState, 'bot_state', 10)
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
         Vector3, 
-        'movement_coords', 
+        'fist_coords', 
         self.coords_callback, 
         10)
 
-    self.gestures_subscription = self.create_subscription(
-        String, 'gestures', self.gestures_callback, 10)
+    self.movement_subscription = self.create_subscription(
+        String, 
+        'movement', 
+        self.movement_callback, 
+        10)
 
     self.speech_subscription = self.create_subscription(
         String,
@@ -128,11 +93,11 @@ class SimSubscriber(Node):
         self.speech_callback,
         10)
 
-#   self.sign_lang_subscription = self.create_subscription(
-#       String,
-#       'sign_lang',
-#       self.sign_lang_callback,
-#       10)
+    self.sign_lang_subscription = self.create_subscription(
+        String,
+        'sign_lang',
+        self.sign_lang_callback,
+        10)
 
   def on_press(self,  key):
     try:
@@ -152,10 +117,6 @@ class SimSubscriber(Node):
     except AttributeError:
       pass
       #self.get_logger().info(f'special key {key} pressed')
-
-  def play_sound(self, sound):
-    path = join(self.SOUNDFX_PATH, sound.value)
-    threading.Thread(target=playsound, args=(path,)).start()
 
   def on_release(self, key):
     #self.get_logger().info(f'key {key} released')
@@ -177,7 +138,7 @@ class SimSubscriber(Node):
       if not self.PEPPER_SIM:
         # TODO: move this to the jaco simulator file
         coords = adjustScaleJaco(coords)
-      self.simulator.move(coords, draw=draw_tr)
+      self.simulator.move_joint(coords, draw=draw_tr)
       if self.mode == Mode.RECORD:
         self.trajectory.append(msg)
 
@@ -190,54 +151,35 @@ class SimSubscriber(Node):
     else:
       self.process_speech_correction()
 
-# def process_sign_lang(self, sign_lang):
-#   self.sign_lang_history.insert(0, sign_lang)
-#   if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
-#       and self.mode != Mode.RECORD:
-#     self.sign_mode = SignMode.HEY_RECEIVED
-#     self.text_to_speech('Sign the next command')
-#   elif self.mode == Mode.RECORD and sign_lang == Mode.IMITATE.value:
-#     self.set_mode(Mode.IMITATE)
-#   elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
-#     if sign_lang == Mode.RECORD.name.lower():
-#       self.set_mode(Mode.RECORD)
-#     elif sign_lang == Mode.IMITATE.value:
-#       self.set_mode(Mode.IMITATE)
-#     elif sign_lang == Mode.REPLAY.name.lower() and self.trajectory \
-#         and self.mode == Mode.IMITATE:
-#       threading.Thread(target=self.replay_movement()).start()
-#     elif sign_lang == Mode.FEEDBACK.name.lower() and self.trajectory:
-#       self.set_mode(Mode.FEEDBACK)
-#     elif self.mode == Mode.FEEDBACK and sign_lang in ('left', 'right', 'up', 'down'):
-#       self.change_trajectory(sign_lang)
+  def movement_callback(self, msg):
+    self.get_logger().info(f'incoming movement {msg}')
+    if self.PEPPER_SIM:
+      self.simulator.move(msg.data)
 
-#     self.sign_mode = SignMode.WAITING_FOR_HEY
+  def sign_lang_callback(self, msg):
+    self.get_logger().info(f'Incoming sign language: {msg.data}')
+    sign_lang = msg.data
+    self.sign_lang_history.insert(0, sign_lang)
+    if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
+        and self.mode != Mode.RECORD:
+      self.sign_mode = SignMode.HEY_RECEIVED
+      self.text_to_speech('Sign the next command')
+    elif self.mode == Mode.RECORD and sign_lang == Mode.IMITATE.value:
+      self.set_mode(Mode.IMITATE)
+    elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
+      if sign_lang == Mode.RECORD.name.lower():
+        self.set_mode(Mode.RECORD)
+      elif sign_lang == Mode.IMITATE.value:
+        self.set_mode(Mode.IMITATE)
+      elif sign_lang == Mode.REPLAY.name.lower() and self.trajectory \
+          and self.mode == Mode.IMITATE:
+        threading.Thread(target=self.replay_movement()).start()
+      elif sign_lang == Mode.FEEDBACK.name.lower() and self.trajectory:
+        self.set_mode(Mode.FEEDBACK)
+      elif self.mode == Mode.FEEDBACK and sign_lang in ('left', 'right', 'up', 'down'):
+        self.change_trajectory(sign_lang)
 
-
-# def sign_lang_callback(self, msg):
-#   self.get_logger().info(f'Incoming sign language: {msg.data}')
-#   sign_lang = msg.data
-#   self.sign_lang_history.insert(0, sign_lang)
-#   if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
-#       and self.mode != Mode.RECORD:
-#     self.sign_mode = SignMode.HEY_RECEIVED
-#     self.text_to_speech('Sign the next command')
-#   elif self.mode == Mode.RECORD and sign_lang == Mode.IMITATE.value:
-#     self.set_mode(Mode.IMITATE)
-#   elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
-#     if sign_lang == Mode.RECORD.name.lower():
-#       self.set_mode(Mode.RECORD)
-#     elif sign_lang == Mode.IMITATE.value:
-#       self.set_mode(Mode.IMITATE)
-#     elif sign_lang == Mode.REPLAY.name.lower() and self.trajectory \
-#         and self.mode == Mode.IMITATE:
-#       threading.Thread(target=self.replay_movement()).start()
-#     elif sign_lang == Mode.FEEDBACK.name.lower() and self.trajectory:
-#       self.set_mode(Mode.FEEDBACK)
-#     elif self.mode == Mode.FEEDBACK and sign_lang in ('left', 'right', 'up', 'down'):
-#       self.change_trajectory(sign_lang)
-
-#     self.sign_mode = SignMode.WAITING_FOR_HEY
+      self.sign_mode = SignMode.WAITING_FOR_HEY
 
   # TODO: Catch all edge cases where certain mode changes are not allowed
   def process_speech(self, keyword=''):
@@ -245,6 +187,8 @@ class SimSubscriber(Node):
     if keyword == Mode.RECORD.name.lower():
       self.trajectory = []
       self.set_mode(Mode.RECORD)
+    elif keyword == Mode.MOVE.name.lower():
+      self.set_mode(Mode.MOVE)
     elif keyword[:3] == 'rec' or keyword[:3] == 'req' or keyword == 'we':
       self.guess_word(Mode.RECORD.name.lower())
     elif keyword == Mode.IMITATE.value:
@@ -338,13 +282,8 @@ class SimSubscriber(Node):
   def set_mode(self, mode, sound=True):
     if self.mode != mode:
       self.mode = mode 
-      #self.play_sound(Sound.NOTIFY)
       if sound: self.text_to_speech(f'Change mode to {mode.name}')
-      msg = String()
-      msg.data = mode.name
-      self.mode_publisher.publish(msg)
-      pub = self.create_publisher(String, 'mode', 10)
-      pub.publish(msg)
+      self.publish_bot_state(True, self.mode.name)
       self.get_logger().info(f'Mode set to {mode.name}')
 
   def replay_movement(self, num_times=3):
@@ -355,10 +294,18 @@ class SimSubscriber(Node):
           if self.mode != Mode.REPLAY: break
           for coord in self.trajectory:
             if self.mode != Mode.REPLAY: break
-            self.simulator.move([coord.x, coord.y, coord.z], draw=True)
+            self.simulator.move_joint([coord.x, coord.y, coord.z], draw=True)
             time.sleep(self.REPLAY_RATIO)
         self.get_logger().info('Replay complete.')
         self.set_mode(Mode.IMITATE)
+
+  def publish_bot_state(self, mode_changed=False, mode_name='', info=''):
+    if mode_name == '': mode_name = self.mode.name
+    bot_state = BotState()
+    bot_state.mode_changed = mode_changed
+    bot_state.mode_name = mode_name
+    bot_state.info = info
+    self.publisher_bot_state.publish(bot_state)
 
 def adjustScaleJaco(coords):
     x = coords[0] - 300

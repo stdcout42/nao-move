@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 import pyaudio
 import json
+import threading
 
 from std_msgs.msg import String
 from vosk import Model, KaldiRecognizer
@@ -14,7 +15,17 @@ class SpeechPublisher(Node):
   # On Ubuntu 20.04 this index is of the input source 'pulse'
   MIC_INPUT = 10
 
+  def __init__(self):
+    super().__init__('speech_talker')
+    self.publisher_ = self.create_publisher(String, 'speech', 10)
+    self.msg = String()
+    SetLogLevel(-1)
+
+    threading.Thread(target=self.classify_stream).start()
+    #self.classify_stream()
+
   def classify_stream(self):
+    self.get_logger().info('speech in the house')
     model = Model('src/arm_simulator/arm_simulator/vosk_model')
     recognizer = KaldiRecognizer(model, 16000)
     pa = pyaudio.PyAudio()
@@ -30,7 +41,7 @@ class SpeechPublisher(Node):
           js = json.loads(res)
           first_two_words = js['text'].split(' ')[:2]
           if len(first_two_words) == 2 and first_two_words[0] == 'hey':
-            #print(f'first_two_words {first_two_words}')
+            #self.get_logger().info(f'first_two_words {first_two_words}')
             msg = String()
             msg.data = first_two_words[1]
             self.publisher_.publish(msg)
@@ -38,13 +49,6 @@ class SpeechPublisher(Node):
       except KeyboardInterrupt:
         exit()
 
-
-  def __init__(self):
-    super().__init__('speech_talker')
-    self.publisher_ = self.create_publisher(String, 'speech', 10)
-    self.msg = String()
-    SetLogLevel(-1)
-    self.classify_stream()
     
 def main(args=None):
   rclpy.init(args=args)
@@ -54,6 +58,7 @@ def main(args=None):
   rclpy.spin(speech_publisher)
 
   speech_publisher.destroy_node()
+
   rclpy.shutdown()
 
 if __name__ == '__main__':
