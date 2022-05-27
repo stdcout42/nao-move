@@ -10,6 +10,7 @@ from tempfile import NamedTemporaryFile
 from rclpy.node import Node
 from std_msgs.msg import String
 from nao_move_interfaces.msg import BotState 
+from nao_move_interfaces.msg import WristCoordinates 
 from pynput import keyboard
 from playsound import playsound
 from geometry_msgs.msg import Vector3
@@ -38,6 +39,8 @@ class Feedback(AutoName):
   FASTER = auto()
   SLOWER = auto()
   ROLL = auto()
+  PITCH = auto()
+  YAW = auto()
   DRAW = auto()
 
 class SignMode(AutoName):
@@ -55,7 +58,7 @@ class SimSubscriber(Node):
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
   SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
-  PEPPER_SIM = True
+  PEPPER_SIM = False
   num_guesses = 0
   words_similar_to_no = ['no', 'know']
   sign_mode = SignMode.WAITING_FOR_HEY
@@ -78,8 +81,8 @@ class SimSubscriber(Node):
 
   def create_subscriptions(self):
     self.coords_subscription = self.create_subscription(
-        Vector3, 
-        'fist_coords', 
+        WristCoordinates, 
+        'wrist_coords', 
         self.coords_callback, 
         10)
 
@@ -133,16 +136,24 @@ class SimSubscriber(Node):
 
   def coords_callback(self, msg):
     #self.get_logger().info('Incoming coords: "%s"' % f'{msg.x}, {msg.y}, {msg.z}')
-    self.last_coords_vec = msg
     if self.mode in (Mode.IMITATE, Mode.RECORD):
       draw_tr = self.mode == Mode.RECORD 
-      coords = [msg.x, msg.y, msg.z]
-      if not self.PEPPER_SIM:
-        # TODO: move this to the jaco simulator file
-        coords = adjustScaleJaco(coords)
+      if self.PEPPER_SIM:
+        coords = [
+            msg.world_coordinate.x, 
+            msg.world_coordinate.y, 
+            msg.world_coordinate.z]
+      else:
+        coords = [
+            msg.from_origin_coordinate.x, 
+            msg.from_origin_coordinate.y, 
+            msg.from_origin_coordinate.z]
+
+      self.get_logger().info(f'{coords}')
       self.simulator.move_joint(coords, draw=draw_tr)
       if self.mode == Mode.RECORD:
-        self.trajectory.append(msg)
+        self.trajectory.append(msg.world_coordinate if self.PEPPER_SIM \
+            else msg.from_origin_coordinate)
 
   def speech_callback(self, msg):
     if self.speech_mode == SpeechMode.OFF: return
@@ -203,12 +214,14 @@ class SimSubscriber(Node):
       if self.mode != Mode.RECORD or self.mode != Mode.REPLAY:
         self.set_mode(Mode.FEEDBACK)
     elif self.mode == Mode.FEEDBACK and (keyword in self.feedback_names \
-        or keyword in ('whoa', 'role', 'ross', 'room')):
+        or keyword in ('whoa', 'role', 'ross', 'room', 'ya', 'y\'all')):
       if keyword == Feedback.DRAW.name.lower(): 
         self.simulator.draw_trajectory(self.trajectory, get_random_color())
         self.text_to_speech('Drawing trajectory')
       elif keyword in ('whoa', 'role', 'ross'):
         self.change_trajectory('roll')
+      elif keyword in ('ya', 'y\'all'):
+        self.change_trajectory('yaw')
       else: self.change_trajectory(keyword)
     else:
       self.text_to_speech(f'Unrecognized command {keyword}')
@@ -246,7 +259,17 @@ class SimSubscriber(Node):
 
   def change_trajectory(self, keyword):
     self.prev_trajectory = copy.deepcopy(self.trajectory)
-    if keyword not in ('roll'):
+    if keyword in ('roll', 'pitch', 'yaw'):
+      if keyword == 'roll':
+        self.trajectory = \
+            list(map(lambda v: rotate_vector3_xaxis(-math.pi/16, v), self.trajectory))
+      elif keyword == 'pitch':
+        self.trajectory = \
+            list(map(lambda v: rotate_vector3_yaxis(-math.pi/16, v), self.trajectory))
+      else:
+        self.trajectory = \
+            list(map(lambda v: rotate_vector3_zaxis(-math.pi/16, v), self.trajectory))
+    else:
       dx = dy = dz = 0
       c = 1.0
       if keyword == 'up':
@@ -267,15 +290,16 @@ class SimSubscriber(Node):
         if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
       self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c-dz), 
         self.trajectory))
-    else:
-      self.trajectory = list(map(lambda v: rotate_vector3_xaxis(math.pi/8, v), self.trajectory))
 
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.text_to_speech(f'Trajectory modified to {keyword}')
     prev_color = get_random_color()
     curr_color = get_random_color()
+    self.simulator.remove_all_debug()
     self.simulator.draw_trajectory(self.prev_trajectory, prev_color) 
     self.simulator.draw_trajectory(self.trajectory, curr_color) 
+    self.simulator.add_text('old trajectory', 
+        [-self.trajectory[0].x, self.trajectory[0].y, self.trajectory[0].z], prev_color)
     self.simulator.add_text('new trajectory', 
         [self.trajectory[0].x, self.trajectory[0].y, self.trajectory[0].z], curr_color)
     self.set_mode(Mode.IMITATE, False)
@@ -316,17 +340,34 @@ class SimSubscriber(Node):
     bot_state.info = info
     self.publisher_bot_state.publish(bot_state)
 
-def adjustScaleJaco(coords):
-    x = coords[0] - 300
-    z = 450 - coords[2]
-    return [x * (1.0/300), coords[1]*2.5, z * (1.0/450)]
-
 # matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
 def rotate_vector3_xaxis(angle, vector):
   rot_matrix = np.array([
     [1, 0, 0],
     [0, math.cos(angle), -math.sin(angle)],
     [0, math.sin(angle), math.cos(angle)]
+    ])
+
+  t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))
+  return Vector3(x=t_x[0], y=t_x[1], z=t_x[2])
+
+# matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
+def rotate_vector3_yaxis(angle, vector):
+  rot_matrix = np.array([
+    [math.cos(angle), 0, math.sin(angle)],
+    [0, 1, 0], 
+    [-math.sin(angle), 0, math.cos(angle)]
+    ])
+
+  t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))
+  return Vector3(x=t_x[0], y=t_x[1], z=t_x[2])
+
+# matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
+def rotate_vector3_zaxis(angle, vector):
+  rot_matrix = np.array([
+    [math.cos(angle), -math.sin(angle), 0],
+    [math.sin(angle), math.cos(angle), 0], 
+    [0, 0, 1]
     ])
 
   t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))

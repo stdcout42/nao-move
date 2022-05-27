@@ -44,6 +44,7 @@ class CvUtils():
   mp_holistic = mp.solutions.holistic
   history_length = 16
   z_coord = -0.3
+  wrist_from_origin_fraction = None
   mp_drawing = mp.solutions.drawing_utils # Drawing utilities
   mp_drawing_styles = mp.solutions.drawing_styles
   robot_mode = 'IMITATE'
@@ -109,6 +110,10 @@ class CvUtils():
         if hand_sign_id == 0: 
           self.point_history.append(landmark_list[0]) 
           right_fist_detected = True
+          self.wrist_from_origin_fraction = \
+              [(landmark_list[0][0] - debug_image.shape[1]/2.0)/(debug_image.shape[1]/2.0), 
+               self.z_coord, 
+                (debug_image.shape[0] - landmark_list[0][1])/debug_image.shape[0]]
 
           if self.robot_mode == 'MOVE':
             self.set_movement_direction(debug_image, landmark_list[0][0],landmark_list[0][1])
@@ -262,6 +267,7 @@ class CvUtils():
     for index, point in enumerate(point_history):
       if point[0] != 0 and point[1] != 0:
        self.last_coords = [point[0], self.z_coord, point[1]]
+       #print(self.last_coords)
        cv.circle(image, (point[0], point[1]), 1 + int(index / 2),
                   (152, 251, 152), 2)
 

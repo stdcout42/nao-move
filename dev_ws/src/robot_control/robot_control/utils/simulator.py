@@ -22,16 +22,17 @@ class Simulator(object):
     self.set_consts()
     # adjust block mass
     p.changeDynamics(self.arm_id, self.joint_id["weight_joint"], mass=0.5)
+    self.l_hand_prev_pos = None
 
   def configure_pybullet(self):
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     plane_id = p.loadURDF("plane.urdf")
-    p.setRealTimeSimulation(False)
+    p.setRealTimeSimulation(True)
     p.setGravity(0, 0, -10)
 
   def load_configure_arm(self):
-    model_path = "src/arm_simulator/arm_simulator/objects/jaco_robotiq_object.urdf"
+    model_path = "src/robot_control/robot_control/objects/jaco_robotiq_object.urdf"
     self.arm_id = p.loadURDF(model_path, [0, 0, 0], useFixedBase=True)
     angle = p.getQuaternionFromEuler([math.pi / 2, 0, 0])
     # variables specific to this arm
@@ -43,6 +44,7 @@ class Simulator(object):
     self.jd = [0.000001] * num_joints
     self.jr = np.array(self.ll) - np.array(self.ul)
     self.ik_solver = p.IK_DLS
+    self.l_hand_prev_pos = p.getLinkState(self.arm_id, self.eef_index)[0]
 
     for i in range(num_joints):
         p.resetJointState(self.arm_id, i, self.rp[i])
@@ -62,8 +64,8 @@ class Simulator(object):
     self.positionGains = [0.03] * self.num_controlled_joints
     self.velocityGains = [1] * self.num_controlled_joints
 
-  def move(self, coords):
-    p.stepSimulation()
+  def move_joint(self, coords, joint_to_move='', draw=False):
+    coords = self.adjust_coords(coords)
     jointPoses = p.calculateInverseKinematics(self.arm_id, self.eef_index, coords, self.orn,
                                                 lowerLimits=self.ll,
                                                 upperLimits=self.ul,
@@ -79,6 +81,32 @@ class Simulator(object):
                                 forces=self.forces,
                                 positionGains=self.positionGains,
                                 velocityGains=self.velocityGains)
+    #p.stepSimulation()
 
+    if draw:
+      if not self.l_hand_prev_pos: self.l_hand_prev_pos = p.getLinkState(self.arm_id, self.eef_index)[0]
+      self.l_hand_current_pos = p.getLinkState(self.arm_id, self.eef_index)[0]
+      p.addUserDebugLine(self.l_hand_prev_pos, self.l_hand_current_pos, [1,0,0], 2, 15)
+      self.l_hand_prev_pos = self.l_hand_current_pos
 
+  def adjust_coords(self, coords):
+    coords[1] *= 1.5
+    return coords
 
+  def draw_trajectory(self, trajectory, color=[0,1,0]):
+    for i, coord in enumerate(trajectory):
+      if i + 1 == len(trajectory): break
+      coord_from = [coord.x, coord.y, coord.z]
+      coord_to = [trajectory[i+1].x, trajectory[i+1].y, trajectory[i+1].z]
+      self.adjust_coords(coord_from)
+      self.adjust_coords(coord_to)
+      p.addUserDebugLine(coord_from, coord_to, color, 2, 60)
+
+  def add_text(self, text, pos, color):
+    self.adjust_coords(pos)
+    pos[0] += 0.2
+    pos[2] += 0.2
+    p.addUserDebugText(text, pos, color, 2, 60)
+
+  def remove_all_debug(self):
+    p.removeAllUserDebugItems()

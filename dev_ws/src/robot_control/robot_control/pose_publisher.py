@@ -6,6 +6,7 @@ from geometry_msgs.msg import Vector3
 from std_msgs.msg import String
 from robot_control.sim_subscriber import Mode
 from nao_move_interfaces.msg import BotState
+from nao_move_interfaces.msg import WristCoordinates
 from .utils.cvutils import CvUtils
 
 class PosePublisher(Node):
@@ -16,7 +17,7 @@ class PosePublisher(Node):
 
   def __init__(self):
     super().__init__('pose_publisher')
-    self.publisher_fist = self.create_publisher(Vector3, 'fist_coords', 10)
+    self.publisher_fist = self.create_publisher(WristCoordinates, 'wrist_coords', 10)
     self.publisher_signlang = self.create_publisher(String, 'sign_lang', 10)
     self.publisher_movement = self.create_publisher(String, 'movement', 10)
     self.mode_subscription = self.create_subscription(BotState,
@@ -42,17 +43,21 @@ class PosePublisher(Node):
     sys.exit()
 
   def publish_coords(self):
-    coords = self.cvUtils.right_wrist_world_coords
-    #coords = self.cvUtils.last_coords
-    if coords is not None and self.cvUtils.last_coords is not None:
-     #coords = adjustScale(coords) 
-      coords_vec = Vector3()
-      coords_vec.x = float(coords[0])
-      coords_vec.y = float(coords[1])
-      coords_vec.z = float(coords[2])
+    coords_world = self.cvUtils.right_wrist_world_coords
+    coords_from_origin = self.cvUtils.wrist_from_origin_fraction
+    if coords_world is not None:
+      #self.get_logger().info(f'form origin: {coords_from_origin}')
+      #self.get_logger().info(f'form world: {float(coords_world}')
+      wrist_coordinates = WristCoordinates()
+      wrist_coordinates.world_coordinate.x = float(coords_world[0])
+      wrist_coordinates.world_coordinate.y = float(coords_world[1])
+      wrist_coordinates.world_coordinate.z = float(coords_world[2])
+      wrist_coordinates.from_origin_coordinate.x = float(coords_from_origin[0])
+      wrist_coordinates.from_origin_coordinate.y = float(coords_from_origin[1])
+      wrist_coordinates.from_origin_coordinate.z = float(coords_from_origin[2])
 
       #print(coords_vec)
-      self.publisher_fist.publish(coords_vec)
+      self.publisher_fist.publish(wrist_coordinates)
   
   def publish_signlang(self):
     if self.cvUtils.sentence and self.cvUtils.sentence[-1] != 'nothing':
@@ -71,7 +76,6 @@ class PosePublisher(Node):
   
   def bot_state_callback(self, bot_state):
     if bot_state.mode_changed:
-      new_mode = bot_state.mode_name
       self.last_mode_received = bot_state.mode_name 
       self.cvUtils.set_robot_mode(bot_state.mode_name)
 
