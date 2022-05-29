@@ -114,7 +114,8 @@ class CvUtils():
               [(landmark_list[0][0] - debug_image.shape[1]/2.0)/(debug_image.shape[1]/2.0), 
                self.z_coord, 
                 (debug_image.shape[0] - landmark_list[0][1])/debug_image.shape[0]]
-
+          #print(f'wrist {results.left_hand_landmarks.landmark[0]}')
+          #print(f'thumb {results.left_hand_landmarks.landmark[4]}')
           if self.robot_mode == 'MOVE':
             self.set_movement_direction(debug_image, landmark_list[0][0],landmark_list[0][1])
  

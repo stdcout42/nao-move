@@ -58,7 +58,7 @@ class SimSubscriber(Node):
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
   SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
-  PEPPER_SIM = False
+  PEPPER_SIM = True
   num_guesses = 0
   words_similar_to_no = ['no', 'know']
   sign_mode = SignMode.WAITING_FOR_HEY
@@ -108,6 +108,7 @@ class SimSubscriber(Node):
     try:
       #self.get_logger().info(f'key {key.char} pressed')
       if key.char == 'r': # Record movement mode
+        self.trajectory = []
         self.set_mode(Mode.RECORD)
       elif key.char == 's': # Stop action
         self.set_mode(Mode.IMITATE)
@@ -138,22 +139,21 @@ class SimSubscriber(Node):
     #self.get_logger().info('Incoming coords: "%s"' % f'{msg.x}, {msg.y}, {msg.z}')
     if self.mode in (Mode.IMITATE, Mode.RECORD):
       draw_tr = self.mode == Mode.RECORD 
-      if self.PEPPER_SIM:
-        coords = [
-            msg.world_coordinate.x, 
-            msg.world_coordinate.y, 
-            msg.world_coordinate.z]
-      else:
-        coords = [
-            msg.from_origin_coordinate.x, 
-            msg.from_origin_coordinate.y, 
-            msg.from_origin_coordinate.z]
+      world_coords = [
+          msg.world_coordinate.x, 
+          msg.world_coordinate.y, 
+          msg.world_coordinate.z]
 
-      self.get_logger().info(f'{coords}')
+      from_origin_coords = [
+          msg.from_origin_coordinate.x, 
+          msg.from_origin_coordinate.y, 
+          msg.from_origin_coordinate.z]
+
+      coords = world_coords if self.PEPPER_SIM else from_origin_coords
+      #self.get_logger().info(f'{coords}')
       self.simulator.move_joint(coords, draw=draw_tr)
       if self.mode == Mode.RECORD:
-        self.trajectory.append(msg.world_coordinate if self.PEPPER_SIM \
-            else msg.from_origin_coordinate)
+        self.trajectory.append(coords)
 
   def speech_callback(self, msg):
     if self.speech_mode == SpeechMode.OFF: return
@@ -181,6 +181,7 @@ class SimSubscriber(Node):
       self.set_mode(Mode.IMITATE)
     elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
       if sign_lang == Mode.RECORD.name.lower():
+        self.trajectory = []
         self.set_mode(Mode.RECORD)
       elif sign_lang == Mode.IMITATE.value:
         self.set_mode(Mode.IMITATE)
@@ -259,16 +260,18 @@ class SimSubscriber(Node):
 
   def change_trajectory(self, keyword):
     self.prev_trajectory = copy.deepcopy(self.trajectory)
+    centroid = get_centroid(self.trajectory)
+    new_centroid = centroid
     if keyword in ('roll', 'pitch', 'yaw'):
       if keyword == 'roll':
         self.trajectory = \
-            list(map(lambda v: rotate_vector3_xaxis(-math.pi/16, v), self.trajectory))
+            list(map(lambda v: rotate_vector_xaxis(math.pi/2, v), self.trajectory))
       elif keyword == 'pitch':
         self.trajectory = \
-            list(map(lambda v: rotate_vector3_yaxis(-math.pi/16, v), self.trajectory))
+            list(map(lambda v: rotate_vector_yaxis(-math.pi/2, v), self.trajectory))
       else:
         self.trajectory = \
-            list(map(lambda v: rotate_vector3_zaxis(-math.pi/16, v), self.trajectory))
+            list(map(lambda v: rotate_vector_zaxis(-math.pi/2, v), self.trajectory))
     else:
       dx = dy = dz = 0
       c = 1.0
@@ -288,8 +291,15 @@ class SimSubscriber(Node):
         if self.REPLAY_SPEED < self.MAX_REPLAY_SPEED: self.REPLAY_SPEED += 1
       elif keyword == 'slower':
         if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
-      self.trajectory = list(map(lambda v: Vector3(x=v.x*c+dx, y=v.y+dy, z=v.z*c-dz), 
+      self.trajectory = list(map(lambda v: [v[0]*c+dx, v[1]+dy, v[2]*c-dz], 
         self.trajectory))
+    if keyword not in ('left', 'right', 'up', 'down'):
+      new_centroid = get_centroid(self.trajectory)
+      if new_centroid.tolist() != centroid.tolist():
+        d_centroid = centroid - new_centroid
+        self.trajectory = \
+            list(map(lambda v: (np.array(v) + d_centroid).tolist(), self.trajectory))
+
 
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.text_to_speech(f'Trajectory modified to {keyword}')
@@ -299,9 +309,9 @@ class SimSubscriber(Node):
     self.simulator.draw_trajectory(self.prev_trajectory, prev_color) 
     self.simulator.draw_trajectory(self.trajectory, curr_color) 
     self.simulator.add_text('old trajectory', 
-        [-self.trajectory[0].x, self.trajectory[0].y, self.trajectory[0].z], prev_color)
+        [-self.trajectory[0][0], self.trajectory[0][1], self.trajectory[0][2]], prev_color)
     self.simulator.add_text('new trajectory', 
-        [self.trajectory[0].x, self.trajectory[0].y, self.trajectory[0].z], curr_color)
+        [self.trajectory[0][0], self.trajectory[0][1], self.trajectory[0][2]], curr_color)
     self.set_mode(Mode.IMITATE, False)
  
   def text_to_speech(self, text):
@@ -319,15 +329,16 @@ class SimSubscriber(Node):
       self.publish_bot_state(True, self.mode.name)
       self.get_logger().info(f'Mode set to {mode.name}')
 
-  def replay_movement(self, num_times=3):
+  def replay_movement(self, num_times=1):
     if self.mode != Mode.RECORD:
       if self.trajectory:
+        self.simulator.remove_all_debug()
         self.set_mode(Mode.REPLAY)
         for _ in range(num_times):
           if self.mode != Mode.REPLAY: break
-          for coord in self.trajectory:
+          for i, coord in enumerate(self.trajectory):
             if self.mode != Mode.REPLAY: break
-            self.simulator.move_joint([coord.x, coord.y, coord.z], draw=True)
+            self.simulator.move_joint(coord, draw=True)
             time.sleep(self.REPLAY_RATIO)
         self.get_logger().info('Replay complete.')
         self.set_mode(Mode.IMITATE)
@@ -341,39 +352,42 @@ class SimSubscriber(Node):
     self.publisher_bot_state.publish(bot_state)
 
 # matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
-def rotate_vector3_xaxis(angle, vector):
+def rotate_vector_xaxis(angle, vector):
   rot_matrix = np.array([
     [1, 0, 0],
     [0, math.cos(angle), -math.sin(angle)],
     [0, math.sin(angle), math.cos(angle)]
     ])
 
-  t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))
-  return Vector3(x=t_x[0], y=t_x[1], z=t_x[2])
+  t_x = np.matmul(rot_matrix, np.array(vector))
+  return [t_x[0], t_x[1], t_x[2]]
 
 # matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
-def rotate_vector3_yaxis(angle, vector):
+def rotate_vector_yaxis(angle, vector):
   rot_matrix = np.array([
     [math.cos(angle), 0, math.sin(angle)],
     [0, 1, 0], 
     [-math.sin(angle), 0, math.cos(angle)]
     ])
 
-  t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))
-  return Vector3(x=t_x[0], y=t_x[1], z=t_x[2])
+  t_x = np.matmul(rot_matrix, np.array(vector))
+  return [t_x[0], t_x[1], t_x[2]]
 
 # matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
-def rotate_vector3_zaxis(angle, vector):
+def rotate_vector_zaxis(angle, vector):
   rot_matrix = np.array([
     [math.cos(angle), -math.sin(angle), 0],
     [math.sin(angle), math.cos(angle), 0], 
     [0, 0, 1]
     ])
 
-  t_x = np.matmul(rot_matrix, np.array([vector.x, vector.y, vector.z]))
-  return Vector3(x=t_x[0], y=t_x[1], z=t_x[2])
+  t_x = np.matmul(rot_matrix, np.array(vector))
+  return [t_x[0], t_x[1], t_x[2]]
 
 def get_random_color(): return np.random.uniform(0.2, 1, (3)).tolist()
+
+def get_centroid(coords):
+  return np.add.reduce(np.array(coords)) / len(coords)
 
 def main(args=None):
   rclpy.init(args=args)
