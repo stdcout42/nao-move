@@ -4,6 +4,7 @@ import copy
 import numpy as np
 import rclpy
 import math
+from os.path import join
 from enum import Enum, auto
 from gtts import gTTS
 from tempfile import NamedTemporaryFile
@@ -16,7 +17,7 @@ from playsound import playsound
 from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
 from .utils.pepper_simulator import PepperSimulator
-from os.path import join
+from .utils.tester import Tester, Shape
 
 class AutoName(Enum):
   def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
@@ -57,7 +58,6 @@ class SimSubscriber(Node):
   REPLAY_SPEED = 15
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
-  SOUNDFX_PATH = 'src/arm_simulator/arm_simulator/sounds'
   PEPPER_SIM = True
   num_guesses = 0
   words_similar_to_no = ['no', 'know']
@@ -76,6 +76,7 @@ class SimSubscriber(Node):
       on_release=self.on_release)
     self.keyboard_listener.start()
     self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
+    self.tester = Tester(self.simulator)
     self.create_subscriptions()
     self.publisher_bot_state = self.create_publisher(BotState, 'bot_state', 10)
 
@@ -104,22 +105,38 @@ class SimSubscriber(Node):
         self.sign_lang_callback,
         10)
 
+    self.gui_subscription = self.create_subscription(
+        String,
+        'gui',
+        self.gui_callback,
+        10)
+
+
+  def gui_callback(self, msg):
+    self.get_logger().info(f'{msg}')
+    if msg.data == 'draw_circle':
+      self.tester.shape_to_test = Shape.CIRCLE
+      self.tester.draw_test_shape()
+    elif msg.data == 'clean':
+      self.simulator.remove_all_debug()
   def on_press(self,  key):
     try:
       #self.get_logger().info(f'key {key.char} pressed')
-      if key.char == 'r': # Record movement mode
+      if key.char == 'R': # Record movement mode
         self.trajectory = []
         self.set_mode(Mode.RECORD)
-      elif key.char == 's': # Stop action
+      elif key.char == 'S': # Stop action
         self.set_mode(Mode.IMITATE)
-      elif key.char == 'p': # (re)-play recorded movement
+      elif key.char == 'P': # (re)-play recorded movement
         threading.Thread(target=self.replay_movement()).start()
         #self.replay_movement()
-      elif key.char == 'v': # switch on/off voice control
+      elif key.char == 'V': # switch on/off voice control
         self.set_speech_mode(
             SpeechMode.OFF if self.speech_mode == SpeechMode.LISTEN else SpeechMode.LISTEN)
-      elif key.char == 'd':
+      elif key.char == 'D':
         self.simulator.draw_trajectory(self.trajectory)
+      elif key.char == 'L':
+        self.tester.save_trajectory(Shape.CIRCLE, self.trajectory, True)
     except AttributeError:
       pass
       #self.get_logger().info(f'special key {key} pressed')
@@ -129,7 +146,6 @@ class SimSubscriber(Node):
     if key == keyboard.Key.esc:
       # Stop keyboard_listener
       return False
-
 
   def gestures_callback(self, msg):
     #self.get_logger().info('Incoming gesture: "%s"' % msg.data)
@@ -206,6 +222,8 @@ class SimSubscriber(Node):
     elif keyword[:3] == 'rec' or keyword[:3] == 'req' or keyword == 'we':
       self.guess_word(Mode.RECORD.name.lower())
     elif keyword == Mode.IMITATE.value:
+      if self.mode == Mode.RECORD:
+        self.tester.save_trajectory(self.trajectory, Shape.CIRCLE)
       self.set_mode(Mode.IMITATE)
     elif keyword == Mode.REPLAY.name.lower():
       threading.Thread(target=self.replay_movement()).start()
@@ -227,6 +245,7 @@ class SimSubscriber(Node):
     else:
       self.text_to_speech(f'Unrecognized command {keyword}')
   
+
   def guess_word(self, word):
     self.set_speech_mode(SpeechMode.CORRECTION)
     self.guessed_word = word

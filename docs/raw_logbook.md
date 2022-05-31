@@ -256,3 +256,18 @@ Spent most of the weekend experimenting with different sign language models / da
 - Created custom message nao\_move\_interfaces/msg/BotState.msg
 - Added new mode: _move_ which allows the end user to move the robot 
 
+## May 26th
+- Robot arm had stopped working, fixed that and added debug lines to it as well
+- Created a single message `WristCoordinates.msg` that has coordinates for both Pepper and Jaco (robot arm) 
+
+## May 29th
+- Fixed the rotation by translating to previous centroid -- by changing one data type to make the code smoother I got stuck with a bug for 5 hours
+
+## May 30th
+- Created methods to save trajectories and load trajectories (`Tester` class)
+- Started on a gui to support the testing framework for the experiment
+
+## May 31st
+- Spent the morning setting up gui communication to work with simulator (able to draw template in simulator through gui now)
+- Tested shape circle, accuracy was not the best as expected -- but the concept works
+

@@ -78,14 +78,14 @@ class PepperSimulator(object):
     coords[2] += self.pepper.getLinkPosition('Hip')[0][2]
     return coords
 
-  def draw_trajectory(self, trajectory, color=[0,1,0]):
+  def draw_trajectory(self, trajectory, color=[0.5,1,0], duration=60):
     for i, coord in enumerate(trajectory):
       if i + 1 == len(trajectory): break
       coord_from = coord
       coord_to = trajectory[i+1]
       coord_from = self.adjust_coordinates(coord_from)
       coord_to = self.adjust_coordinates(coord_to)
-      p.addUserDebugLine(coord_from, coord_to, color, 2, 60)
+      p.addUserDebugLine(coord_from, coord_to, color, 2, duration)
 
   def add_text(self, text, pos, color):
     pos = self.adjust_coordinates(pos)
