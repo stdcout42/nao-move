@@ -28,7 +28,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BotState.msg"
   "msg/Vector3.msg"
   "msg/WristCoordinates.msg"
+  "msg/GuiCmd.msg"
   "srv/Command.srv"
+  "action/Fibonacci.action"
   DEPENDENCIES std_msgs geometry_msgs
 )
 

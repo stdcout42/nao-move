@@ -40,4 +40,9 @@ Classes:'play', 'hey', 'record', 'feedback', 'stop', 'follow', 'nothing',
 The direction signs have been changed. Best of the largest models so far. Great accuracy.
 170 videos per sign.
 
+## 06122130
+### 
+Same classes as above plus 'move'
+Performs OK except for some mismatches. More testing required -- also, need more people train (prev model was helped by a friend with the collection)
+
  

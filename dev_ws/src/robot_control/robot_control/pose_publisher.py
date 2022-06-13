@@ -8,6 +8,7 @@ from robot_control.sim_subscriber import Mode
 from nao_move_interfaces.msg import BotState
 from nao_move_interfaces.msg import WristCoordinates
 from .utils.cvutils import CvUtils
+from .utils.enums import SignMode
 
 class PosePublisher(Node):
   cvUtils = CvUtils()
@@ -75,9 +76,23 @@ class PosePublisher(Node):
       self.publisher_movement.publish(msg)
   
   def bot_state_callback(self, bot_state):
+    self.get_logger().info(f'{bot_state}')
     if bot_state.mode_changed:
+      if self.last_mode_received == Mode.RECORD.name:
+        self.cvUtils.set_sign_mode_txt('Sign HEY to get my attention!')
+
       self.last_mode_received = bot_state.mode_name 
       self.cvUtils.set_robot_mode(bot_state.mode_name)
+    if bot_state.sign_mode_changed:
+      txt = ''
+      if bot_state.sign_mode_name == SignMode.HEY_RECEIVED.name:
+        txt = 'Now sign RECORD/FEEDBACK/REPLAY/MOVE'
+        self.cvUtils.set_sign_mode_txt(txt)
+      elif bot_state.mode_name == Mode.RECORD.name:
+        txt = 'Sign STOP when you\'re finished recording!'
+      else:
+        txt = 'Sign HEY to get my attention!'
+      self.cvUtils.set_sign_mode_txt(txt)
 
 
 def main(args=None):

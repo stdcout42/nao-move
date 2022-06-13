@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionClient
 import pyaudio
 import json
 import threading
@@ -7,7 +8,6 @@ import threading
 from std_msgs.msg import String
 from vosk import Model, KaldiRecognizer
 from vosk import SetLogLevel 
-
 
 class SpeechPublisher(Node):
   # MIC_INPUT is set to the external mic input, the value of which 
@@ -20,9 +20,7 @@ class SpeechPublisher(Node):
     self.publisher_ = self.create_publisher(String, 'speech', 10)
     self.msg = String()
     SetLogLevel(-1)
-
-    threading.Thread(target=self.classify_stream).start()
-    #self.classify_stream()
+    self.classify_stream()
 
   def classify_stream(self):
     self.get_logger().info('speech in the house')
@@ -49,7 +47,6 @@ class SpeechPublisher(Node):
       except KeyboardInterrupt:
         exit()
 
-    
 def main(args=None):
   rclpy.init(args=args)
   speech_publisher = SpeechPublisher()

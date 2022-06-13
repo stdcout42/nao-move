@@ -270,4 +270,31 @@ Spent most of the weekend experimenting with different sign language models / da
 ## May 31st
 - Spent the morning setting up gui communication to work with simulator (able to draw template in simulator through gui now)
 - Tested shape circle, accuracy was not the best as expected -- but the concept works
+## June 8th 
+Spent the last week studying and completing my last exam of the bachelor (took place yesterday). Will ease back into working on the thesis today.
+- Read article Non verbal behavior modeling for Socially Assistive Robots and took notes (see `docs/related works`
+- Made an attempt at reducing jaggedness in imitated movement by averaging out the last three coordinates - but it made the movement too laggy.
+
+## June 9th
+- Created Triangle shape and added it to the GUI
+- GUI functionality extended 
+
+## June 10th
+- Extended the BotState message with subject\_name, test\_shape which can be displayed and manipulated via
+the GUI
+
+## June 11th
+- Expanded GUI (shape manipulation)
+- Created a ROS msg for gui communication (publisher)
+
+## June 12th
+- Experimented with adding objects in PyBullet for testing (i.e, throw a ball into a bucket)
+- Added GUI functionality for it
+- Attempted to create a new classifier with 'move' class in it, it's not performing great 
+
+## June 13th
+- Pilot study with Marina & Bahadir & Mariana
+- Added timer to record mode 
+- Added feedback on what to sign next
+- Added new class in sign language 'move', increased the dataset to 215 video fragments per class (12 classes)
 

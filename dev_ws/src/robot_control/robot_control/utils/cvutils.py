@@ -26,6 +26,8 @@ class CircleDirection(AutoName):
   RIGHT = auto()
   BACK = auto()
   LEFT = auto()
+  ROT_R = auto()
+  ROT_L = auto()
   STOP = auto()
 
 
@@ -48,14 +50,18 @@ class CvUtils():
   mp_drawing = mp.solutions.drawing_utils # Drawing utilities
   mp_drawing_styles = mp.solutions.drawing_styles
   robot_mode = 'IMITATE'
+  sign_mode_txt = 'Wave HEY to get my attention!'
   sequence = []
   sentence = []
   predictions = []
   fwd_circle = Circle(320, 120, 50, CircleDirection.FORWARD)
   right_circle = Circle(460, 240, 50, CircleDirection.RIGHT)
+  rotate_r_circle = Circle(540, 240, 50, CircleDirection.ROT_R)
   left_circle = Circle(180, 240, 50, CircleDirection.LEFT)
+  rotate_l_circle = Circle(100, 240, 50, CircleDirection.ROT_L)
   bck_circle = Circle(320, 360, 50, CircleDirection.BACK)
-  movement_circles = [fwd_circle, right_circle, bck_circle, left_circle]
+  movement_circles = [fwd_circle, right_circle, bck_circle, left_circle, 
+      rotate_l_circle, rotate_r_circle]
   circle_dir_selected = CircleDirection.STOP
 
   def __init__(self, video_src=0):
@@ -84,7 +90,7 @@ class CvUtils():
     #actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop'])
     #actions = np.array(['play', 'hey', 'nothing', 'record', 'feedback', 'stop', 'follow'])
     actions = np.array(['replay', 'hey', 'record', 'feedback', 'stop', 'follow', 'nothing',
-                    'left', 'right', 'up', 'down'])
+                    'left', 'right', 'up', 'down', 'move'])
 
     if results.left_hand_landmarks or results.right_hand_landmarks:
       if results.right_hand_landmarks:
@@ -159,13 +165,17 @@ class CvUtils():
 
 
       # Viz probabilities
-      debug_image = prob_viz(res, actions, debug_image)
+      if self.robot_mode != 'MOVE':
+        debug_image = prob_viz(res, actions, debug_image)
 
     if self.robot_mode == 'MOVE':
       self.draw_movement_circles(debug_image)
     cv.rectangle(debug_image, (140,0), (400, 40), (117, 240, 16), -1)
     cv.putText(debug_image, f'Mode: {self.robot_mode}', (143,30),
                    cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
+    cv.putText(debug_image, f'{self.sign_mode_txt}', (113,60),
+        cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv.LINE_AA)
+
     debug_image = self.draw_point_history(debug_image, self.point_history)
    
     cv.imshow('Hello world.', debug_image)
@@ -184,9 +194,14 @@ class CvUtils():
     self.keypoint_classifier_labels = [row[0] for row in self.keypoint_classifier_labels]
   
   def load_signlang_classifier(self):
-    #self.signlang_classifier = tf.keras.models.load_model('src/pose_simulator/pose_simulator/utils/best_model_90shape.h5')
+    # Best model
+    #self.signlang_classifier = tf.keras.models.load_model(
+    #    'src/robot_control/robot_control/utils/05231109.h5')
+
+    # new model:
     self.signlang_classifier = tf.keras.models.load_model(
-        'src/robot_control/robot_control/utils/05231109.h5')
+        'src/robot_control/robot_control/utils/06131658.h5')
+
 
   def calc_bounding_rect(self, image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
@@ -321,6 +336,9 @@ class CvUtils():
   
   def set_robot_mode(self, mode):
     self.robot_mode = mode 
+
+  def set_sign_mode_txt(self, txt):
+    self.sign_mode_txt = txt
 
   def draw_movement_circles(self, image):
     for circle in self.movement_circles:

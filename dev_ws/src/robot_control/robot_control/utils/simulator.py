@@ -66,7 +66,7 @@ class Simulator(object):
     self.velocityGains = [1] * self.num_controlled_joints
 
   def move_joint(self, coords, joint_to_move='', draw=False):
-    coords = self.adjust_coords(coords)
+    coords = self.adjust_coordinates(coords)
     #p.stepSimulation()
     jointPoses = p.calculateInverseKinematics(self.arm_id, self.eef_index, coords, self.orn,
                                                 lowerLimits=self.ll,
@@ -91,7 +91,7 @@ class Simulator(object):
     else: 
       self.l_hand_prev_pos = p.getLinkState(self.arm_id, self.eef_index)[0]
 
-  def adjust_coords(self, coords):
+  def adjust_coordinates(self, coords):
     coords = copy.copy(coords)
     coords[1] *= 2
     coords[2] += 0.1
@@ -101,12 +101,12 @@ class Simulator(object):
     for i, coord in enumerate(trajectory):
       if i + 1 == len(trajectory): break
       coord_to = [trajectory[i+1][0], trajectory[i+1][1], trajectory[i+1][2]]
-      self.adjust_coords(coord)
-      self.adjust_coords(coord_to)
+      self.adjust_coordinates(coord)
+      self.adjust_coordinates(coord_to)
       p.addUserDebugLine(coord, coord_to, color, 2, 60)
 
   def add_text(self, text, pos, color):
-    self.adjust_coords(pos)
+    self.adjust_coordinates(pos)
     pos[0] += 0.2
     pos[2] += 0.2
     p.addUserDebugText(text, pos, color, 2, 60)

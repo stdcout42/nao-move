@@ -11,6 +11,7 @@ from tempfile import NamedTemporaryFile
 from rclpy.node import Node
 from std_msgs.msg import String
 from nao_move_interfaces.msg import BotState 
+from nao_move_interfaces.msg import GuiCmd
 from nao_move_interfaces.msg import WristCoordinates 
 from pynput import keyboard
 from playsound import playsound
@@ -18,6 +19,7 @@ from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
 from .utils.pepper_simulator import PepperSimulator
 from .utils.tester import Tester, Shape
+from .utils.math_utils import get_modified_trajectory
 
 class AutoName(Enum):
   def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
@@ -66,7 +68,7 @@ class SimSubscriber(Node):
   def __init__(self):
     super().__init__('sim_subscriber')
     self.mode = Mode.IMITATE
-    self.speech_mode = SpeechMode.LISTEN
+    self.speech_mode = SpeechMode.OFF
     self.speech_history = []
     self.sign_lang_history = []
     self.trajectory = []
@@ -93,11 +95,11 @@ class SimSubscriber(Node):
         self.movement_callback, 
         10)
 
-    self.speech_subscription = self.create_subscription(
-        String,
-        'speech',
-        self.speech_callback,
-        10)
+   #self.speech_subscription = self.create_subscription(
+   #    String,
+   #    'speech',
+   #    self.speech_callback,
+   #    10)
 
     self.sign_lang_subscription = self.create_subscription(
         String,
@@ -106,25 +108,54 @@ class SimSubscriber(Node):
         10)
 
     self.gui_subscription = self.create_subscription(
-        String,
+        GuiCmd,
         'gui',
         self.gui_callback,
         10)
-
+  
 
   def gui_callback(self, msg):
     self.get_logger().info(f'{msg}')
-    if msg.data == 'draw_circle':
-      self.tester.shape_to_test = Shape.CIRCLE
-      self.tester.draw_test_shape()
-    elif msg.data == 'clean':
+    if not msg.cmd: return
+
+    if msg.cmd == 'draw':
+      shape = get_shape_from_str(msg.shape)
+      mod = msg.shape_mod
+      self.tester.draw_test_shape(shape, mod)
+    elif msg.cmd == 'name':
+      if msg.args:
+        self.tester.subject_name = msg.args.split()[0]
+
+    elif msg.cmd == 'feedback':
+      if msg.shape_mod == 'draw':
+        self.simulator.draw_trajectory(self.trajectory)
+      else:
+        self.change_trajectory(msg.shape_mod)
+    elif msg.cmd == 'clean':
       self.simulator.remove_all_debug()
+    elif msg.cmd == 'record':
+      self.init_record()
+    elif msg.cmd == 'stop':
+      if self.mode == Mode.RECORD:
+        self.tester.save_trajectory(self.trajectory)
+      self.set_mode(Mode.IMITATE)
+    elif msg.cmd == 'save':
+      self.tester.save_trajectory(self.trajectory)
+    elif msg.cmd == 'move':
+      self.set_mode(Mode.MOVE)
+    elif msg.cmd == 'spawn':
+      if msg.obj:
+        self.simulator.spawn_obj(msg.obj)
+    elif msg.cmd == 'replay' and self.trajectory:
+        threading.Thread(target=self.replay_movement()).start()
+
+    self.publish_bot_state()
+
   def on_press(self,  key):
     try:
       #self.get_logger().info(f'key {key.char} pressed')
       if key.char == 'R': # Record movement mode
-        self.trajectory = []
-        self.set_mode(Mode.RECORD)
+        self.init_record()
       elif key.char == 'S': # Stop action
         self.set_mode(Mode.IMITATE)
       elif key.char == 'P': # (re)-play recorded movement
@@ -140,7 +171,7 @@ class SimSubscriber(Node):
     except AttributeError:
       pass
       #self.get_logger().info(f'special key {key} pressed')
-
+  
   def on_release(self, key):
     #self.get_logger().info(f'key {key} released')
     if key == keyboard.Key.esc:
@@ -154,7 +185,7 @@ class SimSubscriber(Node):
   def coords_callback(self, msg):
     #self.get_logger().info('Incoming coords: "%s"' % f'{msg.x}, {msg.y}, {msg.z}')
     if self.mode in (Mode.IMITATE, Mode.RECORD):
-      draw_tr = self.mode == Mode.RECORD 
+      color = [1,0,0] if self.mode == Mode.RECORD else [0,1,0]
       world_coords = [
           msg.world_coordinate.x, 
           msg.world_coordinate.y, 
@@ -167,7 +198,7 @@ class SimSubscriber(Node):
 
       coords = world_coords if self.PEPPER_SIM else from_origin_coords
       #self.get_logger().info(f'{coords}')
-      self.simulator.move_joint(coords, draw=draw_tr)
+      self.simulator.move_joint(coords, draw=True, color=color)
       if self.mode == Mode.RECORD:
         self.trajectory.append(coords)
 
@@ -191,14 +222,15 @@ class SimSubscriber(Node):
     self.sign_lang_history.insert(0, sign_lang)
     if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
         and self.mode != Mode.RECORD:
-      self.sign_mode = SignMode.HEY_RECEIVED
-      self.text_to_speech('Sign the next command')
-    elif self.mode == Mode.RECORD and sign_lang == Mode.IMITATE.value:
+      self.set_sign_mode(SignMode.HEY_RECEIVED)
+    elif self.mode in (Mode.RECORD, Mode.MOVE) and sign_lang == Mode.IMITATE.value:
+      if self.mode == Mode.RECORD:
+        self.tester.save_trajectory(self.trajectory)
+      self.simulator.move('STOP')
       self.set_mode(Mode.IMITATE)
     elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
       if sign_lang == Mode.RECORD.name.lower():
-        self.trajectory = []
-        self.set_mode(Mode.RECORD)
+        self.init_record()
       elif sign_lang == Mode.IMITATE.value:
         self.set_mode(Mode.IMITATE)
       elif sign_lang == Mode.REPLAY.name.lower() and self.trajectory \
@@ -208,8 +240,18 @@ class SimSubscriber(Node):
         self.set_mode(Mode.FEEDBACK)
       elif self.mode == Mode.FEEDBACK and sign_lang in ('left', 'right', 'up', 'down'):
         self.change_trajectory(sign_lang)
+      elif self.mode == Mode.IMITATE and sign_lang == Mode.MOVE.name.lower():
+        self.set_mode(Mode.MOVE)
 
-      self.sign_mode = SignMode.WAITING_FOR_HEY
+      self.set_sign_mode(SignMode.WAITING_FOR_HEY)
+
+
+  def set_sign_mode(self, mode):
+    if self.sign_mode != mode:
+      self.sign_mode = mode
+      if mode == SignMode.HEY_RECEIVED:
+        self.text_to_speech('Sign the next command')
+      self.publish_bot_state(sign_mode_changed=True)
 
   # TODO: Catch all edge cases where certain mode changes are not allowed
   def process_speech(self, keyword=''):
@@ -223,7 +265,7 @@ class SimSubscriber(Node):
       self.guess_word(Mode.RECORD.name.lower())
     elif keyword == Mode.IMITATE.value:
       if self.mode == Mode.RECORD:
-        self.tester.save_trajectory(self.trajectory, Shape.CIRCLE)
+        self.tester.save_trajectory(self.trajectory)
       self.set_mode(Mode.IMITATE)
     elif keyword == Mode.REPLAY.name.lower():
       threading.Thread(target=self.replay_movement()).start()
@@ -278,57 +320,20 @@ class SimSubscriber(Node):
       self.get_logger().info(f'Speech mode set to {mode.name}')
 
   def change_trajectory(self, keyword):
+    if not self.trajectory: return
     self.prev_trajectory = copy.deepcopy(self.trajectory)
-    centroid = get_centroid(self.trajectory)
-    new_centroid = centroid
-    if keyword in ('roll', 'pitch', 'yaw'):
-      if keyword == 'roll':
-        self.trajectory = \
-            list(map(lambda v: rotate_vector_xaxis(math.pi/2, v), self.trajectory))
-      elif keyword == 'pitch':
-        self.trajectory = \
-            list(map(lambda v: rotate_vector_yaxis(-math.pi/2, v), self.trajectory))
-      else:
-        self.trajectory = \
-            list(map(lambda v: rotate_vector_zaxis(-math.pi/2, v), self.trajectory))
-    else:
-      dx = dy = dz = 0
-      c = 1.0
-      if keyword == 'up':
-        dz = 0.1
-      elif keyword == 'down':
-        dz = -0.1
-      elif keyword == 'right':
-        dx = 0.1 
-      elif keyword == 'left':
-        dx = -0.1
-      elif keyword == 'bigger':
-        c = 1.1
-      elif keyword == 'smaller':
-        c = 0.9
-      elif keyword == 'faster':
-        if self.REPLAY_SPEED < self.MAX_REPLAY_SPEED: self.REPLAY_SPEED += 1
-      elif keyword == 'slower':
-        if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
-      self.trajectory = list(map(lambda v: [v[0]*c+dx, v[1]+dy, v[2]*c-dz], 
-        self.trajectory))
-    if keyword not in ('left', 'right', 'up', 'down'):
-      new_centroid = get_centroid(self.trajectory)
-      if new_centroid.tolist() != centroid.tolist():
-        d_centroid = centroid - new_centroid
-        self.trajectory = \
-            list(map(lambda v: (np.array(v) + d_centroid).tolist(), self.trajectory))
-
-
+    if keyword == 'faster':
+      if self.REPLAY_SPEED < self.MAX_REPLAY_SPEED: self.REPLAY_SPEED += 1
+    elif keyword == 'slower':
+      if self.REPLAY_SPEED > 1: self.REPLAY_SPEED -= 1
+    self.trajectory = get_modified_trajectory(self.trajectory, keyword) 
     self.get_logger().info(f'Modified trajectory to {keyword}')
     self.text_to_speech(f'Trajectory modified to {keyword}')
-    prev_color = get_random_color()
-    curr_color = get_random_color()
+    prev_color = (1, 0.1, 0.1)
+    curr_color = (0.1, 0.1, 1)
     self.simulator.remove_all_debug()
     self.simulator.draw_trajectory(self.prev_trajectory, prev_color) 
     self.simulator.draw_trajectory(self.trajectory, curr_color) 
-    self.simulator.add_text('old trajectory', 
-        [-self.trajectory[0][0], self.trajectory[0][1], self.trajectory[0][2]], prev_color)
     self.simulator.add_text('new trajectory', 
         [self.trajectory[0][0], self.trajectory[0][1], self.trajectory[0][2]], curr_color)
     self.set_mode(Mode.IMITATE, False)
@@ -345,7 +350,7 @@ class SimSubscriber(Node):
     if self.mode != mode:
       self.mode = mode 
       if sound: self.text_to_speech(f'Change mode to {mode.name}')
-      self.publish_bot_state(True, self.mode.name)
+      self.publish_bot_state(True)
       self.get_logger().info(f'Mode set to {mode.name}')
 
   def replay_movement(self, num_times=1):
@@ -355,58 +360,51 @@ class SimSubscriber(Node):
         self.set_mode(Mode.REPLAY)
         for _ in range(num_times):
           if self.mode != Mode.REPLAY: break
-          for i, coord in enumerate(self.trajectory):
+          for coord in self.trajectory:
             if self.mode != Mode.REPLAY: break
             self.simulator.move_joint(coord, draw=True)
             time.sleep(self.REPLAY_RATIO)
         self.get_logger().info('Replay complete.')
         self.set_mode(Mode.IMITATE)
 
-  def publish_bot_state(self, mode_changed=False, mode_name='', info=''):
+  def init_record(self):
+    self.record_timer = self.create_timer(1, self.timer_callback)
+    self.text_to_speech('Recording in two seconds')
+    self.timer_countdown = 3
+    self.trajectory = []
+
+  def timer_callback(self):
+    if self.timer_countdown == 0:
+      self.record_timer.cancel()
+      self.set_mode(Mode.RECORD)
+      return 
+ 
+    self.get_logger().info(f'recording in {self.timer_countdown}')
+    self.timer_countdown -= 1
+
+  def publish_bot_state(self, 
+      mode_changed=False, 
+      sign_mode_changed=False,
+      mode_name='', 
+      info=''):
     if mode_name == '': mode_name = self.mode.name
     bot_state = BotState()
     bot_state.mode_changed = mode_changed
+    bot_state.subject_name = self.tester.subject_name
+    bot_state.simulator_name = self.simulator.name
+    bot_state.test_shape = self.tester.shape_to_test.name
     bot_state.mode_name = mode_name
+    bot_state.sign_mode_changed = sign_mode_changed
+    bot_state.sign_mode_name = self.sign_mode.name
     bot_state.info = info
     self.publisher_bot_state.publish(bot_state)
 
-# matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
-def rotate_vector_xaxis(angle, vector):
-  rot_matrix = np.array([
-    [1, 0, 0],
-    [0, math.cos(angle), -math.sin(angle)],
-    [0, math.sin(angle), math.cos(angle)]
-    ])
-
-  t_x = np.matmul(rot_matrix, np.array(vector))
-  return [t_x[0], t_x[1], t_x[2]]
-
-# matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
-def rotate_vector_yaxis(angle, vector):
-  rot_matrix = np.array([
-    [math.cos(angle), 0, math.sin(angle)],
-    [0, 1, 0], 
-    [-math.sin(angle), 0, math.cos(angle)]
-    ])
-
-  t_x = np.matmul(rot_matrix, np.array(vector))
-  return [t_x[0], t_x[1], t_x[2]]
-
-# matrices from: https://en.wikipedia.org/wiki/Rotation_matrix
-def rotate_vector_zaxis(angle, vector):
-  rot_matrix = np.array([
-    [math.cos(angle), -math.sin(angle), 0],
-    [math.sin(angle), math.cos(angle), 0], 
-    [0, 0, 1]
-    ])
-
-  t_x = np.matmul(rot_matrix, np.array(vector))
-  return [t_x[0], t_x[1], t_x[2]]
-
 def get_random_color(): return np.random.uniform(0.2, 1, (3)).tolist()
 
-def get_centroid(coords):
-  return np.add.reduce(np.array(coords)) / len(coords)
+def get_shape_from_str(shape_str):
+  for shape in list(Shape):
+    if shape.name.lower() == shape_str:
+      return shape
 
 def main(args=None):
   rclpy.init(args=args)
@@ -419,4 +417,4 @@ def main(args=None):
     exit()
 
 if __name__ == '__main__':
-    main()
+  main()
