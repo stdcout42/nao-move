@@ -15,5 +15,8 @@ def generate_launch_description():
             package='robot_control', 
             executable='gui_talker', 
             output='screen'),
-
+        Node(
+            package='robot_control', 
+            executable='gui_demo', 
+            output='screen'),
   ])

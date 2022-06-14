@@ -298,3 +298,5 @@ the GUI
 - Added feedback on what to sign next
 - Added new class in sign language 'move', increased the dataset to 215 video fragments per class (12 classes)
 
+## June 14th
+- Created an interface which the tester (me) has control over. This interface will show the sign languages and is controlled by the GUI

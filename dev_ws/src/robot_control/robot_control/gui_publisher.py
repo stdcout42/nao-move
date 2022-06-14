@@ -16,16 +16,15 @@ from kivy.uix.dropdown import DropDown
 from kivy.core.window import Window
 from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
-from enum import Enum, auto
 from robot_control.sim_subscriber import AutoName
+from .utils.enums import VideoDemo, get_video_demo_from_str
 
-class Command(AutoName):
-  DRAW_CIRCLE = auto()
 
 class GuiPublisher(Node):
   def __init__(self):
     super().__init__('gui_publisher')
     self.command_publisher = self.create_publisher(GuiCmd, 'gui', 10)
+    self.demo_publisher = self.create_publisher(String, 'demo', 10)
     self.bot_state_subscription = self.create_subscription(BotState, 'bot_state', 
         self.bot_state_cb, 10)
     self.bot_state = BotState()
@@ -42,6 +41,12 @@ class GuiPublisher(Node):
     gui_cmd.args = args
     gui_cmd.obj = obj
     self.command_publisher.publish(gui_cmd)
+  
+  def publish_demo(self, demo):
+    if demo != 'Video':
+      msg = String()
+      msg.data = demo
+      self.demo_publisher.publish(msg)
 
 class Gui(App):
   HEIGHT = 360 
@@ -69,6 +74,9 @@ class Gui(App):
   obj_btn_txts = ['table', 'tray', 'ball']
   obj_dropdown_btns = None
 
+  video_btn_txts = [vid_demo.name for vid_demo in list(VideoDemo)]
+  video_dropdown_btns = None
+
 
   def __init__(self):
     super(Gui, self).__init__()
@@ -77,6 +85,7 @@ class Gui(App):
     self.shapes_dropdown = self.get_dropdown(self.shape_btn_txts)
     self.mods_dropdown = self.get_dropdown(self.mod_btn_txts)
     self.objs_dropdown = self.get_dropdown(self.obj_btn_txts)
+    self.vids_dropdown = self.get_dropdown(self.video_btn_txts)
 
     self.mode_label = Label(text=self.get_mode_label_txt(),
         pos=(80, self.HEIGHT-40), size_hint=(0.3, 0.1))
@@ -87,8 +96,8 @@ class Gui(App):
     self.test_shape_label = Label(text=self.test_shape,
         pos=(300, self.HEIGHT-40), size_hint=(0.3, 0.1))
 
-    self.command_label = Label(text='Command',
-        pos=(10, self.HEIGHT-80), size_hint=(0.15, 0.1))
+    self.command_label = Label(text='SIM Commands',
+        pos=(25, self.HEIGHT-80), size_hint=(0.30, 0.1))
 
     self.cmd_dropdown_btn = Button(text='Cmd',
        pos=(10, self.HEIGHT-110), size_hint=(0.15,0.1), background_color=(0.1,0,1,1))
@@ -118,6 +127,19 @@ class Gui(App):
         pos=(10, self.HEIGHT-270), 
         size_hint=(0.15,0.1), background_color=(0,1,0,1))
     self.send_command_button.bind(on_press=self.send_cmd_pressed)
+
+    self.video_label = Label(text='Demo GUI',
+        pos=(25, self.HEIGHT-310), size_hint=(0.3, 0.1))
+
+    self.vids_dropdown_btn = Button(text='Video',
+       pos=(10, self.HEIGHT-340), size_hint=(0.15,0.1))
+    self.vids_dropdown_btn.bind(on_release=self.vids_dropdown.open)
+    self.vids_dropdown.bind(on_select=lambda instance, x: setattr(self.vids_dropdown_btn, 'text', x))
+
+    self.update_vid_button = Button(text='Update vid', 
+        pos=(90, self.HEIGHT-340), 
+        size_hint=(0.20,0.1), background_color=(0,1,0,1))
+    self.update_vid_button.bind(on_press=self.update_vid_pressed)
 
 
     ############### 2nd column below
@@ -160,6 +182,9 @@ class Gui(App):
     layout.add_widget(self.shapes_dropdown_btn)
     layout.add_widget(self.mods_dropdown_btn)
     layout.add_widget(self.objs_dropdown_btn)
+    layout.add_widget(self.video_label)
+    layout.add_widget(self.vids_dropdown_btn)
+    layout.add_widget(self.update_vid_button)
 
 
     return layout 
@@ -200,7 +225,6 @@ class Gui(App):
       f =  open(f'src/robot_control/robot_control/experiments/{self.subject_name}', 'a')
       f.write(f'{self.test_shape};{self.elapsed_time}\n')
       f.close()
-
 
   def reset_timer_pressed(self, instance):
     self.elapsed_time = 0
@@ -253,6 +277,8 @@ class Gui(App):
         obj,
         args)
 
+  def update_vid_pressed(self, instance):
+    self.gui_publisher.publish_demo(self.vids_dropdown_btn.text)
 
 def main(args=None):
   gui = Gui()

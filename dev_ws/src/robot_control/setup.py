@@ -29,6 +29,7 @@ setup(
           'pose_talker = robot_control.pose_publisher:main',
           'speech_talker = robot_control.speech_publisher:main',
           'gui_talker = robot_control.gui_publisher:main',
+          'gui_demo = robot_control.gui_demo:main',
         ],
     },
 )
