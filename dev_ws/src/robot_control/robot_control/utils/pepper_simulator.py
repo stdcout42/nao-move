@@ -8,14 +8,26 @@ import math
 import pybullet as p
 import pybullet_data
 from qibullet import SimulationManager
-from .enums import Obj
+from .enums import Obj, Shape
+from .math_utils import *
 
+DEFAULT_LINK = 'LFinger11_link'
 class PepperSimulator():
   name = 'PEPPER'
-  test_shape_lines = [] 
   table = None
   ball = None
+  ref_ball = None
   tray = None
+  testing_started = False
+  test_shape_coords = []
+  test_shape_lines = []
+  user_test_movement = []
+  ref_ball_path = 'src/robot_control/robot_control/objects/my_ball.urdf'
+  shape_coord_index = 0
+  curr_link = DEFAULT_LINK
+  depth = -0.3 
+  depth_is_fixed = False
+  max_angle = 0.15
 
   def __init__(self):
     self.simulation_manager = SimulationManager()
@@ -24,12 +36,22 @@ class PepperSimulator():
         quaternion=p.getQuaternionFromEuler( [0, 0,-math.pi/2]) )
     self.pepper_id = self.pepper.getRobotModel()
     self.joints = list(self.pepper.joint_dict.keys())
-    self.initial_l_hand_pos = self.pepper.getLinkPosition('l_hand')[0]
-    self.l_hand_prev_pos = self.pepper.getLinkPosition('l_hand')[0]
-    self.l_hand_current_pos = self.pepper.getLinkPosition('l_hand')[0]
+    self.initial_link_pos = self.pepper.getLinkPosition(DEFAULT_LINK)[0]
+    self.link_prev_pos = self.pepper.getLinkPosition(DEFAULT_LINK)[0]
+    self.link_current_pos = self.pepper.getLinkPosition(DEFAULT_LINK)[0]
     p.configureDebugVisualizer(p.COV_ENABLE_GUI,0)
     p.setRealTimeSimulation(True)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
+
+  def set_test_shape_coords(self, coords):
+    self.test_shape_coords = coords
+
+  def place_starting_shape_reference(self, shape):
+    if shape == Shape.SQUARE:
+      self.add_ref_ball(self.test_shape_coords[0])
+
+  def add_ref_ball(self, pos):
+    self.ref_ball = p.loadURDF(self.ref_ball_path, pos, globalScaling=0.8)
 
   def move(self, direction, speed=2):
     y_speed = 0
@@ -50,29 +72,28 @@ class PepperSimulator():
     self.pepper.move(y_speed*speed, x_speed*speed, z_speed*speed)
       
 
-  def move_joint(self, coords, end_effector='l_hand', draw=False, color=[1,0,0]):
-    endEffectorLinkIndex = self.pepper.link_dict['l_hand'].getIndex()
+  def move_joint(self, coords, end_effector=DEFAULT_LINK, draw=False, color=[1,0,0]):
+    endEffectorLinkIndex = self.pepper.link_dict[end_effector].getIndex()
     coords = self.adjust_coordinates(coords)
     #print(f'Moving sim to x,y,z with z being height {coords}')
     ik = p.calculateInverseKinematics(self.pepper_id, endEffectorLinkIndex, coords)
     joints_to_control = ['lshoulder', 'lelbow', 'hiproll', 'kneepitch', ]
 
-    max_angle = 0.10
     for i, joint in enumerate(self.joints):
       for j in joints_to_control:
         if j.lower() in joint.lower():
          #print(f'{joint} {ik[i]}')
          angle = ik[i]
          if j.lower() in ('kneepitch','hippitch'):
-           if math.fabs(angle) > max_angle: 
-             angle = max_angle if angle > 0 else -max_angle
+           if math.fabs(angle) > self.max_angle: 
+             angle = self.max_angle if angle > 0 else -self.max_angle
 
          self.pepper.setAngles(joint, angle, 1)
     if draw:
-      self.l_hand_current_pos = self.pepper.getLinkPosition('l_hand')[0]
-      p.addUserDebugLine(self.l_hand_prev_pos, self.l_hand_current_pos, color, 2, 15)
-      self.l_hand_prev_pos = self.l_hand_current_pos
-    else: self.l_hand_prev_pos = self.pepper.getLinkPosition('l_hand')[0]
+      self.link_current_pos = self.pepper.getLinkPosition(end_effector)[0]
+      p.addUserDebugLine(self.link_prev_pos, self.link_current_pos, color, 2, 40)
+      self.link_prev_pos = self.link_current_pos
+    else: self.link_prev_pos = self.pepper.getLinkPosition(end_effector)[0]
 
   """
   Func: adjust_coordinates
@@ -87,6 +108,8 @@ class PepperSimulator():
     coords = copy.copy(coords)
     coords[2] *= -1
     coords[0] += self.pepper.getLinkPosition('Hip')[0][0]
+    if not self.depth_is_fixed:
+      coords[1] = self.depth 
     coords[1] += self.pepper.getLinkPosition('Hip')[0][1]
     coords[2] += self.pepper.getLinkPosition('Hip')[0][2]
     return coords
@@ -115,7 +138,7 @@ class PepperSimulator():
         self.test_shape_lines.append(p.addUserDebugLine(coord, coords[i+1], color, -1))
 
   def spawn_obj(self, obj_str):
-    obj = self.get_obj_from_str(obj_str)
+    obj = get_obj_from_str(obj_str)
     if obj == Obj.BALL:
       if not self.ball:
         self.ball = p.loadURDF('soccerball.urdf',
@@ -139,10 +162,45 @@ class PepperSimulator():
         p.removeBody(self.tray)
         self.tray = None
 
-  def get_obj_from_str(self, obj_str):
-    for obj in list(Obj):
-      if obj.name.lower() == obj_str:
-        return obj
-  
+  def move_ref_and_measure_on_rdy(self):
+    if not self.testing_started:
+      self.testing_started = self.is_link_within_ref_dist()
+      if self.testing_started:
+        self.user_test_movement.append(self.pepper.getLinkPosition(self.curr_link)[0])
+      return True, [], []
+
+    self.shape_coord_index += 1
+    if self.shape_coord_index < len(self.test_shape_coords):
+      p.removeBody(self.ref_ball)
+      self.ref_ball = p.loadURDF(self.ref_ball_path, 
+          self.test_shape_coords[self.shape_coord_index], globalScaling=0.8)
+      self.user_test_movement.append(self.pepper.getLinkPosition(self.curr_link)[0])
+      return True 
+    self.shape_coord_index = 0
+    self.testing_started = False
+    return False
+
+  def set_depth(self, turn_on, depth=None):
+    if turn_on:
+      self.depth_is_fixed = True
+    else:
+      self.depth_is_fixed = False
+      if depth is not None:
+        self.depth = depth
+
+  def set_max_angle(self, angle):
+    self.max_angle = angle
+
+  def is_link_within_ref_dist(self, lim=0.1):
+    link_pos = self.pepper.getLinkPosition(self.curr_link)[0]
+    ref_ball_pos = p.getBasePositionAndOrientation(self.ref_ball)[0]
+    return get_dist(link_pos, ref_ball_pos) < lim
+
   def remove_all_debug(self):
     p.removeAllUserDebugItems()
+
+def get_obj_from_str(obj_str):
+  for obj in list(Obj):
+    if obj.name.lower() == obj_str:
+      return obj
+  return None

@@ -98,18 +98,48 @@ def get_vertices_triangle(side_length=0.35, center=(0,0,0)):
   right = (center[0] + side_length/2.0, center[1], center[2] - height/2.0)
   top = (center[0], center[1], center[2] + height/2.0)
 
-  return (left, top, right)
+  return (top, left, right)
 
 def get_vertices_square(side_length = 0.3, center=(0,0,0)):
   half_length= side_length / 2.0
-  top_left = (center[0] - half_length, center[1], center[2] + half_length)
-  top_right = (center[0] + half_length, center[1], center[2] + half_length)
-  bottom_left = (center[0] - half_length, center[1], center[2] - half_length)
-  bottom_right = (center[0] + half_length, center[1], center[2] - half_length)
-  return (top_left, top_right, bottom_right, bottom_left)
+  top_left = [center[0] - half_length, center[1], center[2] + half_length]
+  bottom_left = [center[0] - half_length, center[1], center[2] - half_length]
+  top_right = [center[0] + half_length, center[1], center[2] + half_length]
+  bottom_right = [center[0] + half_length, center[1], center[2] - half_length]
+  return [top_left, bottom_left, bottom_right, top_right]
+ 
+def get_coordinates_square(vertices):
+  # vertices: (top_left, bottom_left, bottom_right, top_right)
+  coords = []
+  step_sz = 0.01
 
+  for v_i, vertex in enumerate(vertices):
+    curr = vertex.copy()
+    if v_i == 0: #top_left
+      while curr[2] > vertices[v_i+1][2]:
+        curr[2] -= step_sz
+        coords.append([curr[0], curr[1], curr[2]])
+    elif v_i == 1: # bot_left
+      while curr[0] < vertices[v_i+1][0]:
+        curr[0] += step_sz
+        coords.append([curr[0], curr[1], curr[2]])
+    elif v_i == 2: # bot_right 
+      while curr[2] < vertices[v_i+1][2]:
+        curr[2] += step_sz
+        coords.append([curr[0], curr[1], curr[2]])
+    else: # top_right
+      while curr[0] > vertices[0][0]:
+        curr[0] -= step_sz
+        coords.append([curr[0], curr[1], curr[2]])
+  return coords
+  
 def get_circle_coords(radius=0.15, center=(0,0,0)):
   coords = []
   for t in range (0, 70): 
     coords.append([radius*math.cos(t/10)+center[0], center[1], radius*math.sin(t/10)+ center[2]])
   return coords
+
+def get_dist(a, b):
+  a = np.array(a)
+  b = np.array(b)
+  return np.linalg.norm(a-b)

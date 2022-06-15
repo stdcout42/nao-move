@@ -24,3 +24,11 @@ def get_video_demo_from_str(vd_str):
     if vid_dem.name == vd_str:
       return vid_dem
   return None
+
+class Shape(AutoName):
+  CIRCLE = auto()
+  SQUARE = auto()
+  TRIANGLE = auto()
+  HORIZONTAL_LINE = auto()
+  VERTICAL_LINE = auto()
+  DIAGONAL_LINE = auto()

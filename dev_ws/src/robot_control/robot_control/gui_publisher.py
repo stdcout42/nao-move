@@ -60,8 +60,10 @@ class Gui(App):
   timer_is_on = False
   bot_state = None
 
-  cmd_btn_txts = ['stop', 'draw', 'feedback', 'record',
-      'replay', 'move', 'clean', 'spawn', 'name']
+  cmd_btn_txts = ['start_test', 'stop', 'draw', 'feedback', 'record',
+      'replay', 'move', 'clean', 'spawn', 'name', 'set_depth', 'set_radius',
+      'set_max_angle']
+  
   cmd_dropdown_btns = None
 
   shape_btn_txts = ['circle', 'triangle', 'square']

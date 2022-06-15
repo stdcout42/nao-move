@@ -22,6 +22,7 @@ from .utils.tester import Tester, Shape
 from .utils.math_utils import get_modified_trajectory
 
 class AutoName(Enum):
+
   def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
     return name
 
@@ -64,6 +65,7 @@ class SimSubscriber(Node):
   num_guesses = 0
   words_similar_to_no = ['no', 'know']
   sign_mode = SignMode.WAITING_FOR_HEY
+  shape_drawn = False
 
   def __init__(self):
     super().__init__('sim_subscriber')
@@ -122,10 +124,13 @@ class SimSubscriber(Node):
       shape = get_shape_from_str(msg.shape)
       mod = msg.shape_mod
       self.tester.draw_test_shape(shape, mod)
+      self.shape_drawn = True
     elif msg.cmd == 'name':
       if msg.args:
         self.tester.subject_name = msg.args.split()[0]
-
+    elif msg.cmd == 'start_test':
+      if self.shape_drawn:
+        self.start_test_timer()
     elif msg.cmd == 'feedback':
       if msg.shape_mod == 'draw':
         self.simulator.draw_trajectory(self.trajectory)
@@ -133,6 +138,7 @@ class SimSubscriber(Node):
         self.change_trajectory(msg.shape_mod)
     elif msg.cmd == 'clean':
       self.simulator.remove_all_debug()
+      self.shape_drawn = False
     elif msg.cmd == 'record':
       self.init_record()
     elif msg.cmd == 'stop':
@@ -148,8 +154,37 @@ class SimSubscriber(Node):
         self.simulator.spawn_obj(msg.obj)
     elif msg.cmd == 'replay' and self.trajectory:
         threading.Thread(target=self.replay_movement()).start()
+    elif msg.cmd == 'set_depth' and msg.args:
+      args = msg.args.split()
+      if args[0] == 'on':
+        self.simulator.set_depth(turn_on=True)
+      elif args[0] == 'off':
+        self.simulator.set_depth(turn_on=False)
+      else: 
+        try:
+          depth = float(args[0])
+          self.simulator.set_depth(False, depth)
+        except ValueError:
+          self.get_logger().info('Depth is not a float')
+    elif msg.cmd == 'set_max_angle' and msg.args:
+      args = msg.args.split()
+      try:
+        angle = float(args[0])
+        self.simulator.set_max_angle(angle)
+      except ValueError:
+        self.get_logger().info('angle is not a float')
+
+
 
     self.publish_bot_state()
+
+  def start_test_timer(self):
+    self.test_timer = self.create_timer(0.25, self.run_tester_shape_test)
+
+  def run_tester_shape_test(self):
+    if not self.tester.run_shape_test():
+      self.test_timer.cancel()
+
 
   def on_press(self,  key):
     try:

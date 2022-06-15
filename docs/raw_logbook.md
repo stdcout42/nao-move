@@ -300,3 +300,16 @@ the GUI
 
 ## June 14th
 - Created an interface which the tester (me) has control over. This interface will show the sign languages and is controlled by the GUI
+###Meeting notes:
+- Create a reference object which moves along the template trajectory
+  - The object will start moving when the hand is within a fixed distance of the object
+  - MSE computed on the reference and the hand's coordinate
+- Open anded plus suggestive questions for the subjective questionnaire (i.e, would this feature or that feature be liked etc)
+
+## June 15th
+- Expanded testing framework to start moving a (multi threaded) marker (ball) around the template trajectory when the hand coordinates are within vicinity (will be the start of the trajectory test) and the whole testing procedure will be initiated from the GUI. 
+- The testing framework also records the position of the hand when the marker has started moving
+- Only the square has been implemented today - the circle and triangle will be done tomorrow but the groundwork has been laid
+- Moreover, I'll add automatic time recording when the test has been initiated and the ball marker has finished traversing the trajectory
+- Also added functionality to turn depth on and off in the simulator via the GUI
+
