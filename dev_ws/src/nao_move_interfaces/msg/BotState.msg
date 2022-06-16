@@ -1,8 +1,12 @@
 bool mode_changed
 bool sign_mode_changed
+bool test_started
 string mode_name 
 string sign_mode_name
 string subject_name
 string simulator_name
 string test_shape
+bool depth_fixed
+float32 depth
+float32 max_angle
 string info

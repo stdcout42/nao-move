@@ -76,7 +76,7 @@ class PosePublisher(Node):
       self.publisher_movement.publish(msg)
   
   def bot_state_callback(self, bot_state):
-    self.get_logger().info(f'{bot_state}')
+    #self.get_logger().info(f'{bot_state}')
     if bot_state.mode_changed:
       if self.last_mode_received == Mode.RECORD.name:
         self.cvUtils.set_sign_mode_txt('Sign HEY to get my attention!')

@@ -26,11 +26,11 @@ class Tester():
     self.shape_to_test = shape
     coords = []
     if shape == Shape.TRIANGLE:
-      coords = get_vertices_triangle(center=link_pos)
+      coords = get_coordinates_triangle(get_vertices_triangle(center=link_pos))
     elif shape == Shape.SQUARE:
       coords = get_coordinates_square(get_vertices_square(center=link_pos))
     elif shape == Shape.CIRCLE:
-      coords = get_circle_coords(center=link_pos)
+      coords = get_coordinates_circle(center=link_pos)
     if modification:
       coords = get_modified_trajectory(self.test_shape_coords, modification)
 
@@ -60,7 +60,7 @@ class Tester():
       trajectory = list(map(
         self.simulator.adjust_coordinates, trajectory))
    
-    dir_name = datetime.now().strftime('%m_%d_%H')
+    dir_name = f'{self.subject_name}' + datetime.now().strftime('%m_%d')
     dir_path = join(self.EXP_DIR, dir_name)
     if not exists(dir_path):
         mkdir(dir_path)

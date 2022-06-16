@@ -13,7 +13,6 @@ from std_msgs.msg import String
 from nao_move_interfaces.msg import BotState 
 from nao_move_interfaces.msg import GuiCmd
 from nao_move_interfaces.msg import WristCoordinates 
-from pynput import keyboard
 from playsound import playsound
 from geometry_msgs.msg import Vector3
 from .utils.simulator import Simulator
@@ -66,6 +65,10 @@ class SimSubscriber(Node):
   words_similar_to_no = ['no', 'know']
   sign_mode = SignMode.WAITING_FOR_HEY
   shape_drawn = False
+  full_test = False
+  testing_initiated = False
+  testing_hey_received = False
+
 
   def __init__(self):
     super().__init__('sim_subscriber')
@@ -76,9 +79,6 @@ class SimSubscriber(Node):
     self.trajectory = []
     self.feedback_names = [fb.name.lower() for fb in list(Feedback)]
     self.guessed_word = ''
-    self.keyboard_listener = keyboard.Listener(on_press=self.on_press,
-      on_release=self.on_release)
-    self.keyboard_listener.start()
     self.simulator = PepperSimulator() if self.PEPPER_SIM else Simulator() 
     self.tester = Tester(self.simulator)
     self.create_subscriptions()
@@ -117,7 +117,7 @@ class SimSubscriber(Node):
   
 
   def gui_callback(self, msg):
-    self.get_logger().info(f'{msg}')
+    #self.get_logger().info(f'{msg}')
     if not msg.cmd: return
 
     if msg.cmd == 'draw':
@@ -130,6 +130,10 @@ class SimSubscriber(Node):
         self.tester.subject_name = msg.args.split()[0]
     elif msg.cmd == 'start_test':
       if self.shape_drawn:
+        if msg.args and msg.args.split()[0] == 'full':
+          self.full_test = True
+          self.simulator.full_test = True
+          self.testing_initiated = True
         self.start_test_timer()
     elif msg.cmd == 'feedback':
       if msg.shape_mod == 'draw':
@@ -143,7 +147,7 @@ class SimSubscriber(Node):
       self.init_record()
     elif msg.cmd == 'stop':
       if self.mode == Mode.RECORD:
-        self.tester.save_trajectory(self.trajectory)
+        self.simulator.is_recording = False
       self.set_mode(Mode.IMITATE)
     elif msg.cmd == 'save':
       self.tester.save_trajectory(self.trajectory)
@@ -174,44 +178,17 @@ class SimSubscriber(Node):
       except ValueError:
         self.get_logger().info('angle is not a float')
 
-
-
     self.publish_bot_state()
 
   def start_test_timer(self):
     self.test_timer = self.create_timer(0.25, self.run_tester_shape_test)
 
   def run_tester_shape_test(self):
-    if not self.tester.run_shape_test():
+    if not self.tester.run_shape_test(): # testing is finished
       self.test_timer.cancel()
-
-
-  def on_press(self,  key):
-    try:
-      #self.get_logger().info(f'key {key.char} pressed')
-      if key.char == 'R': # Record movement mode
-        self.init_record()
-      elif key.char == 'S': # Stop action
-        self.set_mode(Mode.IMITATE)
-      elif key.char == 'P': # (re)-play recorded movement
-        threading.Thread(target=self.replay_movement()).start()
-        #self.replay_movement()
-      elif key.char == 'V': # switch on/off voice control
-        self.set_speech_mode(
-            SpeechMode.OFF if self.speech_mode == SpeechMode.LISTEN else SpeechMode.LISTEN)
-      elif key.char == 'D':
-        self.simulator.draw_trajectory(self.trajectory)
-      elif key.char == 'L':
-        self.tester.save_trajectory(Shape.CIRCLE, self.trajectory, True)
-    except AttributeError:
-      pass
-      #self.get_logger().info(f'special key {key} pressed')
-  
-  def on_release(self, key):
-    #self.get_logger().info(f'key {key} released')
-    if key == keyboard.Key.esc:
-      # Stop keyboard_listener
-      return False
+      self.testing_initiated = False
+      if self.full_test:
+        self.full_test = False
 
   def gestures_callback(self, msg):
     #self.get_logger().info('Incoming gesture: "%s"' % msg.data)
@@ -258,10 +235,16 @@ class SimSubscriber(Node):
     if self.sign_mode == SignMode.WAITING_FOR_HEY and sign_lang == 'hey' \
         and self.mode != Mode.RECORD:
       self.set_sign_mode(SignMode.HEY_RECEIVED)
+      if self.testing_initiated: 
+        self.testing_hey_received = True
+        self.publish_bot_state()
     elif self.mode in (Mode.RECORD, Mode.MOVE) and sign_lang == Mode.IMITATE.value:
-      if self.mode == Mode.RECORD:
-        self.tester.save_trajectory(self.trajectory)
       self.simulator.move('STOP')
+      if self.mode == Mode.RECORD:
+        self.simulator.is_recording = False
+        if self.testing_hey_received:
+          self.testing_hey_received = False
+          self.publish_bot_state()
       self.set_mode(Mode.IMITATE)
     elif self.sign_mode == SignMode.HEY_RECEIVED and sign_lang != 'hey':
       if sign_lang == Mode.RECORD.name.lower():
@@ -294,13 +277,14 @@ class SimSubscriber(Node):
     if keyword == Mode.RECORD.name.lower():
       self.trajectory = []
       self.set_mode(Mode.RECORD)
+      self.simulator.is_recording = True
     elif keyword == Mode.MOVE.name.lower():
       self.set_mode(Mode.MOVE)
     elif keyword[:3] == 'rec' or keyword[:3] == 'req' or keyword == 'we':
       self.guess_word(Mode.RECORD.name.lower())
     elif keyword == Mode.IMITATE.value:
       if self.mode == Mode.RECORD:
-        self.tester.save_trajectory(self.trajectory)
+        self.simulator.is_recording = False
       self.set_mode(Mode.IMITATE)
     elif keyword == Mode.REPLAY.name.lower():
       threading.Thread(target=self.replay_movement()).start()
@@ -403,35 +387,39 @@ class SimSubscriber(Node):
         self.set_mode(Mode.IMITATE)
 
   def init_record(self):
-    self.record_timer = self.create_timer(1, self.timer_callback)
+    self.record_timer = self.create_timer(1, self.record_timer_cb)
     self.text_to_speech('Recording in two seconds')
     self.timer_countdown = 3
     self.trajectory = []
 
-  def timer_callback(self):
+  def record_timer_cb(self):
     if self.timer_countdown == 0:
       self.record_timer.cancel()
       self.set_mode(Mode.RECORD)
+      self.simulator.is_recording = True
       return 
  
     self.get_logger().info(f'recording in {self.timer_countdown}')
     self.timer_countdown -= 1
 
+
   def publish_bot_state(self, 
       mode_changed=False, 
       sign_mode_changed=False,
-      mode_name='', 
       info=''):
-    if mode_name == '': mode_name = self.mode.name
     bot_state = BotState()
     bot_state.mode_changed = mode_changed
+    bot_state.test_started = self.testing_hey_received
     bot_state.subject_name = self.tester.subject_name
     bot_state.simulator_name = self.simulator.name
     bot_state.test_shape = self.tester.shape_to_test.name
-    bot_state.mode_name = mode_name
+    bot_state.mode_name = self.mode.name
     bot_state.sign_mode_changed = sign_mode_changed
     bot_state.sign_mode_name = self.sign_mode.name
     bot_state.info = info
+    bot_state.depth_fixed = self.simulator.depth_is_fixed
+    bot_state.depth = self.simulator.depth
+    bot_state.max_angle = self.simulator.max_angle
     self.publisher_bot_state.publish(bot_state)
 
 def get_random_color(): return np.random.uniform(0.2, 1, (3)).tolist()

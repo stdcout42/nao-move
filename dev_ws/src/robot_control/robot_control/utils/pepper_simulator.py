@@ -11,7 +11,11 @@ from qibullet import SimulationManager
 from .enums import Obj, Shape
 from .math_utils import *
 
-DEFAULT_LINK = 'LFinger11_link'
+L_FINGER21 = 'LFinger21_link'
+L_HAND = 'l_hand'
+L_WRIST = 'l_wrist'
+DEFAULT_LINK = L_HAND
+
 class PepperSimulator():
   name = 'PEPPER'
   table = None
@@ -19,6 +23,8 @@ class PepperSimulator():
   ref_ball = None
   tray = None
   testing_started = False
+  is_recording = False
+  full_test = False
   test_shape_coords = []
   test_shape_lines = []
   user_test_movement = []
@@ -47,10 +53,11 @@ class PepperSimulator():
     self.test_shape_coords = coords
 
   def place_starting_shape_reference(self, shape):
-    if shape == Shape.SQUARE:
-      self.add_ref_ball(self.test_shape_coords[0])
+    self.add_ref_ball(self.test_shape_coords[0])
 
   def add_ref_ball(self, pos):
+    if self.ref_ball:
+      p.removeBody(self.ref_ball)
     self.ref_ball = p.loadURDF(self.ref_ball_path, pos, globalScaling=0.8)
 
   def move(self, direction, speed=2):
@@ -78,6 +85,8 @@ class PepperSimulator():
     #print(f'Moving sim to x,y,z with z being height {coords}')
     ik = p.calculateInverseKinematics(self.pepper_id, endEffectorLinkIndex, coords)
     joints_to_control = ['lshoulder', 'lelbow', 'hiproll', 'kneepitch', ]
+    if self.testing_started:
+      color = [182/255, 3/255, 252/255]
 
     for i, joint in enumerate(self.joints):
       for j in joints_to_control:
@@ -108,9 +117,9 @@ class PepperSimulator():
     coords = copy.copy(coords)
     coords[2] *= -1
     coords[0] += self.pepper.getLinkPosition('Hip')[0][0]
-    if not self.depth_is_fixed:
+    if self.depth_is_fixed:
       coords[1] = self.depth 
-    coords[1] += self.pepper.getLinkPosition('Hip')[0][1]
+    else: coords[1] += self.pepper.getLinkPosition('Hip')[0][1]
     coords[2] += self.pepper.getLinkPosition('Hip')[0][2]
     return coords
 
@@ -164,10 +173,13 @@ class PepperSimulator():
 
   def move_ref_and_measure_on_rdy(self):
     if not self.testing_started:
+      if self.full_test and not self.is_recording: 
+        return True
+
       self.testing_started = self.is_link_within_ref_dist()
       if self.testing_started:
         self.user_test_movement.append(self.pepper.getLinkPosition(self.curr_link)[0])
-      return True, [], []
+      return True
 
     self.shape_coord_index += 1
     if self.shape_coord_index < len(self.test_shape_coords):
@@ -182,9 +194,9 @@ class PepperSimulator():
 
   def set_depth(self, turn_on, depth=None):
     if turn_on:
-      self.depth_is_fixed = True
+      self.depth_is_fixed = False 
     else:
-      self.depth_is_fixed = False
+      self.depth_is_fixed = True 
       if depth is not None:
         self.depth = depth
 
@@ -198,6 +210,8 @@ class PepperSimulator():
 
   def remove_all_debug(self):
     p.removeAllUserDebugItems()
+    p.removeBody(self.ref_ball)
+    self.ref_ball = None
 
 def get_obj_from_str(obj_str):
   for obj in list(Obj):

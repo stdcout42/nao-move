@@ -313,3 +313,7 @@ the GUI
 - Moreover, I'll add automatic time recording when the test has been initiated and the ball marker has finished traversing the trajectory
 - Also added functionality to turn depth on and off in the simulator via the GUI
 
+## June 16th
+- Automatic time recording implemented but also kept the manual just in case somebody is unable to do the full test run
+- Square and triangle testing with marker and ball have been fully implemented
+- Added some functionality for proper saving of experiment results, as well as recording the parameters (such as depth) when the test was recorded

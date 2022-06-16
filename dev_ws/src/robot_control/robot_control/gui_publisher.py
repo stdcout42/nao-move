@@ -1,8 +1,11 @@
 import os
 import sys
 import rclpy
+from datetime import datetime
 from rclpy.node import Node
 from std_msgs.msg import String
+from os.path import join, exists
+from os import mkdir
 from nao_move_interfaces.msg import BotState 
 from nao_move_interfaces.msg import GuiCmd
 
@@ -19,7 +22,7 @@ from kivy.clock import Clock
 from robot_control.sim_subscriber import AutoName
 from .utils.enums import VideoDemo, get_video_demo_from_str
 
-
+EXP_DIR = 'src/robot_control/robot_control/experiments'
 class GuiPublisher(Node):
   def __init__(self):
     super().__init__('gui_publisher')
@@ -30,7 +33,7 @@ class GuiPublisher(Node):
     self.bot_state = BotState()
 
   def bot_state_cb(self, msg):
-    #self.get_logger().info(f'Incoming bot state {msg}')
+    self.get_logger().info(f'Incoming bot state {msg}')
     self.bot_state = msg
 
   def publish_command(self, cmd, shape, mod, obj, args):
@@ -57,8 +60,12 @@ class Gui(App):
   subject_name = 'subject_name'
   test_shape = 'test_shape'
   elapsed_time = 0
+  start_test_received = False
   timer_is_on = False
   bot_state = None
+  depth_fixed = False
+  depth = 0
+  max_angle = 0.15
 
   cmd_btn_txts = ['start_test', 'stop', 'draw', 'feedback', 'record',
       'replay', 'move', 'clean', 'spawn', 'name', 'set_depth', 'set_radius',
@@ -157,11 +164,20 @@ class Gui(App):
         pos=(270, self.HEIGHT-150), size_hint=(0.25,0.1))
     self.reset_timer_button.bind(on_press=self.reset_timer_pressed)
 
+    self.extra_note_text_input = TextInput(text='Extra notes', multiline=False,
+        pos=(270, self.HEIGHT-190), size_hint=(0.25,0.1))
+
     self.save_to_file_button = Button(text='Save time to file', 
-        pos=(250, self.HEIGHT-190), size_hint=(0.35,0.1), 
+        pos=(250, self.HEIGHT-230), size_hint=(0.35,0.1), 
         background_color=(0.7,0.5,0.1,1))
     self.save_to_file_button.bind(on_press=self.save_button_pressed)
 
+
+    self.log_label = Label(text='Bot logs',
+        pos=(240,self.HEIGHT-80), size_hint=(0.15, 0.1))
+
+    self.log_text_input = TextInput(text='', multiline=True,
+        pos=(220, self.HEIGHT-350), size_hint=(0.50, 0.75), font_size=12)
 
     self.set_schedule_intervals()
 
@@ -169,17 +185,13 @@ class Gui(App):
 
     Window.size = (self.WIDTH, self.HEIGHT)
     layout = FloatLayout()
-
+    ## first column
     layout.add_widget(self.mode_label)
     layout.add_widget(self.subject_name_label)
     layout.add_widget(self.test_shape_label)
     layout.add_widget(self.command_label)
     layout.add_widget(self.send_command_button)
     layout.add_widget(self.args_input)
-    layout.add_widget(self.timer_button)
-    layout.add_widget(self.timer_label)
-    layout.add_widget(self.reset_timer_button)
-    layout.add_widget(self.save_to_file_button)
     layout.add_widget(self.cmd_dropdown_btn)
     layout.add_widget(self.shapes_dropdown_btn)
     layout.add_widget(self.mods_dropdown_btn)
@@ -187,6 +199,14 @@ class Gui(App):
     layout.add_widget(self.video_label)
     layout.add_widget(self.vids_dropdown_btn)
     layout.add_widget(self.update_vid_button)
+    ## second column
+    layout.add_widget(self.timer_button)
+    layout.add_widget(self.timer_label)
+    layout.add_widget(self.reset_timer_button)
+    layout.add_widget(self.save_to_file_button)
+    layout.add_widget(self.extra_note_text_input)
+   # layout.add_widget(self.log_label)
+   # layout.add_widget(self.log_text_input)
 
 
     return layout 
@@ -222,11 +242,25 @@ class Gui(App):
       self.timer_button.background_color = (1,0,0,1)
       self.timer_schedule = Clock.schedule_interval(self.increase_time, 1)
 
+  def start_full_test_timer(self):
+    self.timer_is_on = True
+    self.timer_schedule = Clock.schedule_interval(self.increase_time, 1)
+
   def save_button_pressed(self, instance):
-    if self.subject_name:
-      f =  open(f'src/robot_control/robot_control/experiments/{self.subject_name}', 'a')
-      f.write(f'{self.test_shape};{self.elapsed_time}\n')
-      f.close()
+    self.save_time_to_file()
+
+  def save_time_to_file(self):
+    name = '' if self.subject_name == 'subject_name' else self.subject_name
+    dir_name = name + datetime.now().strftime('%m_%d')
+    depth = self.depth if self.depth_fixed else ''
+    create_session_dir(dir_name)
+    note = self.extra_note_text_input.text \
+        if self.extra_note_text_input.text != 'Extra notes' \
+        else ''
+    time =  datetime.now().strftime('%H_%M_%S')
+    f =  open(join(EXP_DIR, dir_name, f'{self.subject_name}'), 'a')
+    f.write(f'{time};{self.test_shape};{self.elapsed_time};{depth};{self.max_angle};{note}\n')
+    f.close()
 
   def reset_timer_pressed(self, instance):
     self.elapsed_time = 0
@@ -244,6 +278,7 @@ class Gui(App):
   def check_bot_state(self, dt):
     bot_state = self.gui_publisher.bot_state
     if bot_state:
+      #self.log_text_input.text += f"{datetime.now().strftime('%H.%M')}: {bot_state}\n"
       if bot_state.mode_changed and \
         bot_state.mode_name != self.mode:
           self.mode = bot_state.mode_name
@@ -257,6 +292,24 @@ class Gui(App):
         self.test_shape = bot_state.test_shape
         self.test_shape_label.text = self.test_shape
 
+      if bot_state.depth_fixed:
+        self.depth_fixed = bot_state.depth_fixed
+        self.bot_depth = bot_state.depth
+
+    
+      if bot_state.test_started:
+        if not self.timer_is_on:
+          self.start_full_test_timer()
+        self.start_test_received = True
+      elif self.start_test_received:
+        self.timer_is_on = False
+        self.start_test_received = False
+        self.save_time_to_file()
+        self.elapsed_time = 0
+        self.timer_label.text = self.get_timer_elapsed_time_str()
+      self.max_angle = bot_state.max_angle
+
+      self.gui_publisher.bot_state = None
       self.bot_state = bot_state
 
   def send_cmd_pressed(self, instance):
@@ -281,6 +334,12 @@ class Gui(App):
 
   def update_vid_pressed(self, instance):
     self.gui_publisher.publish_demo(self.vids_dropdown_btn.text)
+
+def create_session_dir(dir_name):
+  dir_path = join(EXP_DIR, dir_name)
+  if not exists(dir_path):
+      mkdir(dir_path)
+
 
 def main(args=None):
   gui = Gui()

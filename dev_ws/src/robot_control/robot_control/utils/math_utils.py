@@ -86,20 +86,6 @@ def rotate_vector_zaxis(angle, vector):
   t_x = np.matmul(rot_matrix, np.array(vector))
   return [t_x[0], t_x[1], t_x[2]]
 
-def get_vertices_triangle(side_length=0.35, center=(0,0,0)):
-  """ 
-  returns 3D x,y,z vertex coords of an
-  equilateral triangle with
-  center being the origin
-  ex return: ([-1,2,3], [1,3,4], [2,3,4]) 
-  """
-  height = math.sin(np.deg2rad(60))*side_length
-  left = (center[0] - side_length/2.0, center[1], center[2] - height/2.0)
-  right = (center[0] + side_length/2.0, center[1], center[2] - height/2.0)
-  top = (center[0], center[1], center[2] + height/2.0)
-
-  return (top, left, right)
-
 def get_vertices_square(side_length = 0.3, center=(0,0,0)):
   half_length= side_length / 2.0
   top_left = [center[0] - half_length, center[1], center[2] + half_length]
@@ -133,13 +119,57 @@ def get_coordinates_square(vertices):
         coords.append([curr[0], curr[1], curr[2]])
   return coords
   
-def get_circle_coords(radius=0.15, center=(0,0,0)):
+def get_coordinates_circle(radius=0.15, center=(0,0,0)):
   coords = []
   for t in range (0, 70): 
     coords.append([radius*math.cos(t/10)+center[0], center[1], radius*math.sin(t/10)+ center[2]])
   return coords
 
-def get_dist(a, b):
-  a = np.array(a)
-  b = np.array(b)
-  return np.linalg.norm(a-b)
+def get_coordinates_triangle(vertices):
+  # vertices top, left, bottom
+  coords = []
+  step_sz = 0.025
+
+  for v_i, vertex in enumerate(vertices):
+    curr = vertex.copy()
+    step = 1
+    if v_i == 0: # top
+      while curr[2] > vertices[v_i+1][2]:
+        curr = get_coord_on_line_with_step(step_sz*step,  vertex, vertices[v_i+1])
+        coords.append(curr)
+        step += 1
+    elif v_i == 1: #bot_left
+      while curr[0] < vertices[v_i+1][0]:
+        curr = get_coord_on_line_with_step(step_sz*step,  vertex, vertices[v_i+1])
+        coords.append(curr)
+        step += 1
+    else: # bot_right
+      while curr[2] < vertices[0][2]:
+        curr = get_coord_on_line_with_step(step_sz*step,  vertex, vertices[0])
+        coords.append(curr)
+        step += 1
+  return coords
+
+def get_vertices_triangle(side_length=0.35, center=(0,0,0)):
+  """ 
+  returns 3D x,y,z vertex coords of an
+  equilateral triangle with
+  center being the origin
+  ex return: ([-1,2,3], [1,3,4], [2,3,4]) 
+  """
+  height = math.sin(np.deg2rad(60))*side_length
+  left = [center[0] - side_length/2.0, center[1], center[2] - height/2.0]
+  right = [center[0] + side_length/2.0, center[1], center[2] - height/2.0]
+  top = [center[0], center[1], center[2] + height/2.0]
+
+  return [top, left, right]
+
+def get_coord_on_line_with_step(step_sz, v_from, v_to):
+  v_from = np.array(v_from)
+  v_to = np.array(v_to)
+  return (v_from + step_sz*(v_to - v_from)).tolist()
+
+def get_dist(v_a, v_b):
+  v_a = np.array(v_a)
+  v_b = np.array(v_b)
+  return np.linalg.norm(v_a-v_b)
