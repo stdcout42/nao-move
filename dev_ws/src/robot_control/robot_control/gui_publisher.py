@@ -64,12 +64,13 @@ class Gui(App):
   timer_is_on = False
   bot_state = None
   depth_fixed = False
-  depth = 0
+  bot_depth = 0
   max_angle = 0.15
+  latest_rmse = 0.0
 
-  cmd_btn_txts = ['start_test', 'stop', 'draw', 'feedback', 'record',
-      'replay', 'move', 'clean', 'spawn', 'name', 'set_depth', 'set_radius',
-      'set_max_angle']
+  cmd_btn_txts = ['start_test', 'stop', 'draw','name', 'feedback', 'record',
+      'replay', 'move', 'clean', 'spawn', 'set_obj_pos', 'set_depth', 'set_radius',
+      'set_max_angle', 'reset_base']
   
   cmd_dropdown_btns = None
 
@@ -97,56 +98,62 @@ class Gui(App):
     self.vids_dropdown = self.get_dropdown(self.video_btn_txts)
 
     self.mode_label = Label(text=self.get_mode_label_txt(),
-        pos=(80, self.HEIGHT-40), size_hint=(0.3, 0.1))
+        pos=(80, self.HEIGHT-40), size_hint=(0.3, 0.1), font_size=12)
     
     self.subject_name_label = Label(text=self.subject_name,
-        pos=(200, self.HEIGHT-40), size_hint=(0.3, 0.1))
+        pos=(200, self.HEIGHT-40), size_hint=(0.3, 0.1), font_size=12)
 
     self.test_shape_label = Label(text=self.test_shape,
-        pos=(300, self.HEIGHT-40), size_hint=(0.3, 0.1))
+        pos=(340, self.HEIGHT-40), size_hint=(0.15, 0.1), font_size=12)
+ 
+    self.depth_label = Label(text=self.get_depth_txt(),
+    pos=(340, self.HEIGHT-60), size_hint=(0.15, 0.1), font_size=12)
+
+    self.max_angle_label = Label(text=self.get_max_angle_txt(),
+    pos=(340, self.HEIGHT-80), size_hint=(0.15, 0.1), font_size=12)
 
     self.command_label = Label(text='SIM Commands',
-        pos=(25, self.HEIGHT-80), size_hint=(0.30, 0.1))
+        pos=(25, self.HEIGHT-90), size_hint=(0.30, 0.1))
 
     self.cmd_dropdown_btn = Button(text='Cmd',
-       pos=(10, self.HEIGHT-110), size_hint=(0.15,0.1), background_color=(0.1,0,1,1))
+       pos=(10, self.HEIGHT-120), size_hint=(0.15,0.1), background_color=(0.1,0,1,1))
     self.cmd_dropdown_btn.bind(on_release=self.cmd_dropdown.open)
     self.cmd_dropdown.bind(on_select=lambda instance, x: setattr(self.cmd_dropdown_btn, 'text', x))
 
     self.shapes_dropdown_btn = Button(text='Shape',
-       pos=(10, self.HEIGHT-150), size_hint=(0.15,0.1))
+       pos=(10, self.HEIGHT-160), size_hint=(0.15,0.1))
     self.shapes_dropdown_btn.bind(on_release=self.shapes_dropdown.open)
     self.shapes_dropdown.bind(on_select=lambda instance, x: setattr(self.shapes_dropdown_btn, 'text', x))
 
     self.mods_dropdown_btn = Button(text='Mod',
-       pos=(90, self.HEIGHT-150), size_hint=(0.15,0.1))
+       pos=(90, self.HEIGHT-160), size_hint=(0.15,0.1))
     self.mods_dropdown_btn.bind(on_release=self.mods_dropdown.open)
     self.mods_dropdown.bind(on_select=lambda instance, x: setattr(self.mods_dropdown_btn, 'text', x))
 
 
     self.objs_dropdown_btn = Button(text='Object',
-       pos=(10, self.HEIGHT-190), size_hint=(0.15,0.1))
+       pos=(10, self.HEIGHT-200), size_hint=(0.15,0.1))
     self.objs_dropdown_btn.bind(on_release=self.objs_dropdown.open)
     self.objs_dropdown.bind(on_select=lambda instance, x: setattr(self.objs_dropdown_btn, 'text', x))
 
     self.args_input = TextInput(text='arg0 arg1 arg2', multiline=False,
-        pos=(10, self.HEIGHT-230), size_hint=(0.35, 0.1))
+        pos=(10, self.HEIGHT-240), size_hint=(0.35, 0.1))
 
     self.send_command_button = Button(text='Send cmd', 
-        pos=(10, self.HEIGHT-270), 
+        pos=(10, self.HEIGHT-280), 
         size_hint=(0.15,0.1), background_color=(0,1,0,1))
     self.send_command_button.bind(on_press=self.send_cmd_pressed)
 
     self.video_label = Label(text='Demo GUI',
-        pos=(25, self.HEIGHT-310), size_hint=(0.3, 0.1))
+        pos=(25, self.HEIGHT-320), size_hint=(0.3, 0.1))
 
     self.vids_dropdown_btn = Button(text='Video',
-       pos=(10, self.HEIGHT-340), size_hint=(0.15,0.1))
+       pos=(10, self.HEIGHT-350), size_hint=(0.15,0.1))
     self.vids_dropdown_btn.bind(on_release=self.vids_dropdown.open)
     self.vids_dropdown.bind(on_select=lambda instance, x: setattr(self.vids_dropdown_btn, 'text', x))
 
     self.update_vid_button = Button(text='Update vid', 
-        pos=(90, self.HEIGHT-340), 
+        pos=(90, self.HEIGHT-350), 
         size_hint=(0.20,0.1), background_color=(0,1,0,1))
     self.update_vid_button.bind(on_press=self.update_vid_pressed)
 
@@ -154,30 +161,36 @@ class Gui(App):
     ############### 2nd column below
 
     self.timer_button = Button(text='Start/Stop timer', 
-        pos=(270, self.HEIGHT-110), size_hint=(0.25,0.1), background_color=(0,1,0,1))
+        pos=(270, self.HEIGHT-120), size_hint=(0.25,0.1), background_color=(0,1,0,1))
     self.timer_button.bind(on_press=self.start_timer_pressed)
 
     self.timer_label = Label(text=self.get_timer_elapsed_time_str(),
-      pos=(370, self.HEIGHT-110), size_hint=(0.15, 0.1))
+      pos=(370, self.HEIGHT-120), size_hint=(0.15, 0.1))
 
     self.reset_timer_button = Button(text='Reset timer', 
-        pos=(270, self.HEIGHT-150), size_hint=(0.25,0.1))
+        pos=(270, self.HEIGHT-160), size_hint=(0.25,0.1))
     self.reset_timer_button.bind(on_press=self.reset_timer_pressed)
 
     self.extra_note_text_input = TextInput(text='Extra notes', multiline=False,
-        pos=(270, self.HEIGHT-190), size_hint=(0.25,0.1))
+        pos=(270, self.HEIGHT-200), size_hint=(0.25,0.1))
 
-    self.save_to_file_button = Button(text='Save time to file', 
-        pos=(250, self.HEIGHT-230), size_hint=(0.35,0.1), 
+    self.save_to_file_button = Button(text='Save test results', 
+        pos=(250, self.HEIGHT-240), size_hint=(0.35,0.1), 
         background_color=(0.7,0.5,0.1,1))
     self.save_to_file_button.bind(on_press=self.save_button_pressed)
 
+    self.rmse_label = Label(text='RMSE',
+      pos=(290, self.HEIGHT-330), size_hint=(0.15, 0.1))
+    self.time_taken_label = Label(text='Time taken',
+      pos=(290, self.HEIGHT-300), size_hint=(0.15, 0.1))
 
-    self.log_label = Label(text='Bot logs',
-        pos=(240,self.HEIGHT-80), size_hint=(0.15, 0.1))
 
-    self.log_text_input = TextInput(text='', multiline=True,
-        pos=(220, self.HEIGHT-350), size_hint=(0.50, 0.75), font_size=12)
+
+  # self.log_label = Label(text='Bot logs',
+  #     pos=(240,self.HEIGHT-80), size_hint=(0.15, 0.1))
+
+  # self.log_text_input = TextInput(text='', multiline=True,
+  #     pos=(220, self.HEIGHT-350), size_hint=(0.50, 0.75), font_size=12)
 
     self.set_schedule_intervals()
 
@@ -205,6 +218,10 @@ class Gui(App):
     layout.add_widget(self.reset_timer_button)
     layout.add_widget(self.save_to_file_button)
     layout.add_widget(self.extra_note_text_input)
+    layout.add_widget(self.depth_label)
+    layout.add_widget(self.max_angle_label)
+    layout.add_widget(self.rmse_label)
+    layout.add_widget(self.time_taken_label)
    # layout.add_widget(self.log_label)
    # layout.add_widget(self.log_text_input)
 
@@ -224,6 +241,12 @@ class Gui(App):
 
   def get_timer_elapsed_time_str(self):
     return f'{self.elapsed_time}s'
+
+  def get_max_angle_txt(self):
+    return f'{self.max_angle:.2f} rad'
+
+  def get_depth_txt(self):
+    return f'Depth: {self.bot_depth:.2f}' if self.depth_fixed else 'MP depth'
 
   def init_ros_node(self):
     rclpy.init(args=None)
@@ -252,16 +275,17 @@ class Gui(App):
   def save_time_to_file(self):
     name = '' if self.subject_name == 'subject_name' else self.subject_name
     dir_name = name + datetime.now().strftime('%m_%d')
-    depth = self.depth if self.depth_fixed else ''
+    depth = f'{self.bot_depth:.2f}' if self.depth_fixed else ''
     create_session_dir(dir_name)
     note = self.extra_note_text_input.text \
         if self.extra_note_text_input.text != 'Extra notes' \
         else ''
     time =  datetime.now().strftime('%H_%M_%S')
     f =  open(join(EXP_DIR, dir_name, f'{self.subject_name}'), 'a')
-    f.write(f'{time};{self.test_shape};{self.elapsed_time};{depth};{self.max_angle};{note}\n')
+    f.write(f'{time};{self.test_shape};'+\
+        f'{self.latest_rmse:.2f};{self.elapsed_time};{depth};{self.max_angle:.2f};{note}\n')
     f.close()
-
+  
   def reset_timer_pressed(self, instance):
     self.elapsed_time = 0
     self.timer_label.text = self.get_timer_elapsed_time_str()
@@ -287,6 +311,7 @@ class Gui(App):
         if bot_state.subject_name != self.subject_name:
           self.subject_name = bot_state.subject_name
           self.subject_name_label.text = self.subject_name 
+          self.create_subject_file()
         
       if bot_state.test_shape:
         self.test_shape = bot_state.test_shape
@@ -304,11 +329,18 @@ class Gui(App):
       elif self.start_test_received:
         self.timer_is_on = False
         self.start_test_received = False
+        self.time_taken_label.text = self.get_timer_elapsed_time_str()
         self.save_time_to_file()
         self.elapsed_time = 0
         self.timer_label.text = self.get_timer_elapsed_time_str()
+      
       self.max_angle = bot_state.max_angle
 
+      self.max_angle_label.text = self.get_max_angle_txt()        
+      self.depth_label.text = self.get_depth_txt()
+      self.latest_rmse = bot_state.latest_rmse
+      self.rmse_label.text = f'RMSE: {self.latest_rmse:.2f}'
+      
       self.gui_publisher.bot_state = None
       self.bot_state = bot_state
 
@@ -334,6 +366,13 @@ class Gui(App):
 
   def update_vid_pressed(self, instance):
     self.gui_publisher.publish_demo(self.vids_dropdown_btn.text)
+
+  def create_subject_file(self):
+    dir_name = self.subject_name + datetime.now().strftime('%m_%d')
+    create_session_dir(dir_name)
+    path = join(EXP_DIR, dir_name, self.subject_name)
+    f = open(path, 'a')
+    f.close()
 
 def create_session_dir(dir_name):
   dir_path = join(EXP_DIR, dir_name)

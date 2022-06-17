@@ -93,7 +93,18 @@ class PosePublisher(Node):
       else:
         txt = 'Sign HEY to get my attention!'
       self.cvUtils.set_sign_mode_txt(txt)
+    if bot_state.record_init:
+      self.timer_countdown = 3
+      self.record_timer = self.create_timer(1, self.record_timer_cb)
 
+  def record_timer_cb(self):
+    if self.timer_countdown == 0:
+      self.record_timer.cancel()
+      self.cvUtils.set_sign_mode_txt(f'sign STOP to finish recording')
+      return 
+ 
+    self.cvUtils.set_sign_mode_txt(f'Recording in: {self.timer_countdown}')
+    self.timer_countdown -= 1
 
 def main(args=None):
   rclpy.init(args=args)

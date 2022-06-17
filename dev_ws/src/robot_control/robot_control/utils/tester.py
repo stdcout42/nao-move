@@ -16,6 +16,7 @@ class Tester():
   test_shape_coords = []
   subject_name = ''
   shape_modification = '' 
+  latest_rmse = 0.0
 
   def __init__(self, simulator):
     self.simulator = simulator
@@ -83,8 +84,12 @@ class Tester():
     if not is_testing: # save files
       self.save_trajectory(self.simulator.user_test_movement, test=True)
       self.save_trajectory(self.simulator.test_shape_coords, test=True, template=True)
+      self.calculate_rmse(self.simulator.test_shape_coords, self.simulator.user_test_movement)
       self.simulator.user_test_movement.clear()
     return is_testing
 
   def get_shape_trajectory_from_file(self, shape):
     return np.load(join(self.EXP_DIR, f'{shape.name}.npy')).tolist()
+
+  def calculate_rmse(self, actual, predicted):
+    self.latest_rmse = np.sqrt(np.square(np.subtract(actual, predicted)).mean())

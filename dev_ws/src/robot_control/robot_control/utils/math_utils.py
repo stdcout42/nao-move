@@ -125,6 +125,13 @@ def get_coordinates_circle(radius=0.15, center=(0,0,0)):
     coords.append([radius*math.cos(t/10)+center[0], center[1], radius*math.sin(t/10)+ center[2]])
   return coords
 
+def get_coords_ground_circle(radius=0.15, center=(0,0,0)):
+  coords = []
+  for t in range (0, 70): 
+    coords.append([radius*math.cos(t/10)+center[0], radius*math.sin(t/10)+center[1], center[2]])
+  return coords
+
+
 def get_coordinates_triangle(vertices):
   # vertices top, left, bottom
   coords = []

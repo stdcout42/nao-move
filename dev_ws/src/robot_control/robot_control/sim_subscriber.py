@@ -65,6 +65,7 @@ class SimSubscriber(Node):
   words_similar_to_no = ['no', 'know']
   sign_mode = SignMode.WAITING_FOR_HEY
   shape_drawn = False
+  test_timer_is_on = False
   full_test = False
   testing_initiated = False
   testing_hey_received = False
@@ -135,6 +136,13 @@ class SimSubscriber(Node):
           self.simulator.full_test = True
           self.testing_initiated = True
         self.start_test_timer()
+      if msg.args and msg.args.split()[0] == 'cancel':
+        self.testing_initiated = False 
+        self.simulator.full_test = False
+        self.full_test = False
+        if self.test_timer_is_on:
+          self.test_timer.cancel()
+          self.test_timer_is_on = False
     elif msg.cmd == 'feedback':
       if msg.shape_mod == 'draw':
         self.simulator.draw_trajectory(self.trajectory)
@@ -151,11 +159,28 @@ class SimSubscriber(Node):
       self.set_mode(Mode.IMITATE)
     elif msg.cmd == 'save':
       self.tester.save_trajectory(self.trajectory)
+    elif msg.cmd == 'reset_base':
+      if msg.args:
+        self.simulator.set_base_to_far_table()
+      else:
+        self.simulator.reset_base()
     elif msg.cmd == 'move':
       self.set_mode(Mode.MOVE)
     elif msg.cmd == 'spawn':
       if msg.obj:
         self.simulator.spawn_obj(msg.obj)
+    elif msg.cmd == 'set_obj_pos':
+      if msg.args:
+        args = msg.args.split()
+        if len(args) == 1:
+          if args[0] == 'close':
+            self.simulator.set_objs_close()
+          elif args[0] == 'far':
+            self.simulator.set_objs_far()
+        elif msg.obj and len(args) == 3:
+          self.simulator.set_init_obj_position(msg.obj, 
+              [float(args[0]), float(args[1]), float(args[2])])
+        
     elif msg.cmd == 'replay' and self.trajectory:
         threading.Thread(target=self.replay_movement()).start()
     elif msg.cmd == 'set_depth' and msg.args:
@@ -181,12 +206,16 @@ class SimSubscriber(Node):
     self.publish_bot_state()
 
   def start_test_timer(self):
-    self.test_timer = self.create_timer(0.25, self.run_tester_shape_test)
+    if not self.test_timer_is_on:
+      self.test_timer = self.create_timer(0.25, self.run_tester_shape_test)
+      self.test_timer_is_on = True
 
   def run_tester_shape_test(self):
     if not self.tester.run_shape_test(): # testing is finished
       self.test_timer.cancel()
+      self.test_timer_is_on = False
       self.testing_initiated = False
+      self.publish_bot_state()
       if self.full_test:
         self.full_test = False
 
@@ -209,8 +238,8 @@ class SimSubscriber(Node):
           msg.from_origin_coordinate.z]
 
       coords = world_coords if self.PEPPER_SIM else from_origin_coords
-      #self.get_logger().info(f'{coords}')
       self.simulator.move_joint(coords, draw=True, color=color)
+
       if self.mode == Mode.RECORD:
         self.trajectory.append(coords)
 
@@ -388,6 +417,7 @@ class SimSubscriber(Node):
 
   def init_record(self):
     self.record_timer = self.create_timer(1, self.record_timer_cb)
+    self.publish_bot_state(record_init=True)
     self.text_to_speech('Recording in two seconds')
     self.timer_countdown = 3
     self.trajectory = []
@@ -406,9 +436,11 @@ class SimSubscriber(Node):
   def publish_bot_state(self, 
       mode_changed=False, 
       sign_mode_changed=False,
+      record_init=False,
       info=''):
     bot_state = BotState()
     bot_state.mode_changed = mode_changed
+    bot_state.record_init = record_init
     bot_state.test_started = self.testing_hey_received
     bot_state.subject_name = self.tester.subject_name
     bot_state.simulator_name = self.simulator.name
@@ -416,10 +448,13 @@ class SimSubscriber(Node):
     bot_state.mode_name = self.mode.name
     bot_state.sign_mode_changed = sign_mode_changed
     bot_state.sign_mode_name = self.sign_mode.name
+    if self.test_timer_is_on:
+      info += ' test init'
     bot_state.info = info
     bot_state.depth_fixed = self.simulator.depth_is_fixed
     bot_state.depth = self.simulator.depth
     bot_state.max_angle = self.simulator.max_angle
+    bot_state.latest_rmse = self.tester.latest_rmse 
     self.publisher_bot_state.publish(bot_state)
 
 def get_random_color(): return np.random.uniform(0.2, 1, (3)).tolist()

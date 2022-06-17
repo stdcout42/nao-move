@@ -317,3 +317,10 @@ the GUI
 - Automatic time recording implemented but also kept the manual just in case somebody is unable to do the full test run
 - Square and triangle testing with marker and ball have been fully implemented
 - Added some functionality for proper saving of experiment results, as well as recording the parameters (such as depth) when the test was recorded
+
+## June 17th
+- Finally finished implementing correct (link) movement imitation when the base has been rotated and translated, silly math mishap
+- Added a marker on the ground for indicating where to move the base to
+- Expanded GUI, automatic MSE calculation (and saving) when trajectory is complete
+- Added countdown on camera feed when initiated recording (3s)
+
