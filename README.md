@@ -33,8 +33,7 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 From the directory `/nao-move/dev_ws` run `ros2 launch robot_control robot_control.launch.py`.
 
 #### How to interact
-// TODO: 
-  - add table to show different modes
+![Robot modes](docs/images/robot_modes.png)
   - show (gif?) of different sign language commands
   - add table of different feedback commands
   
