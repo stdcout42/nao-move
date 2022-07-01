@@ -30,7 +30,10 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 - Currently hardcoded to detect webcam from feed 0 (on linux: `/dev/video0`)
 - Change this to your needs in the file `cvutils.py`
 ### Run
-From the directory `/nao-move/dev_ws` run `ros2 launch robot_control robot_control.launch.py`.
+If the installation of all dependencies and ROS2 went well, you have to `cd` to the directory `/nao-move/dev_ws` and
+run
+- colcon build
+- `ros2 launch robot_control robot_control.launch.py`.
 
 #### How to interact
 ![Robot modes](docs/images/robot_modes.png)
