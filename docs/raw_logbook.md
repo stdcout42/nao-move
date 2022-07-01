@@ -324,3 +324,11 @@ the GUI
 - Expanded GUI, automatic MSE calculation (and saving) when trajectory is complete
 - Added countdown on camera feed when initiated recording (3s)
 
+## June 18th
+- Made the font in move mode bigger
+- Created the [form](https://forms.gle/FLenhyY5J4brzGWx9) for after the experiment 
+- Recorded sign languages for the loop (and cut / video edited them)
+- Day one of the experiments will take place today, two people will come in
+
+## June 19th
+- 6 people came in for the experiment
