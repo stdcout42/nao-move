@@ -16,6 +16,7 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 ## Installation
 ### Requirements / dependencies
 - [ros2-foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
+- [colcon](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html#install-colcon) (`sudo apt install python3-colcon-common-extensions`)
 - tensorflow (`pip3 install tensorflow`)
 - numpy (`pip3 install numpy`)
 - pyaudio  (`sudo apt install portaudio19-dev python3-pyaudio` `pip3 install pyaudio` on Ubuntu 20.04)
@@ -32,7 +33,10 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 ### Run
 If the installation of all dependencies and ROS2 went well, you have to `cd` to the directory `/nao-move/dev_ws` and
 run
+
+First make sure you've sourced the ROS2 environment, then:
 - `colcon build`
+- `. install/setup.bash` (assuming you're in bash)
 - `ros2 launch robot_control robot_control.launch.py`.
 
 #### How to interact
