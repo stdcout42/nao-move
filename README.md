@@ -32,7 +32,7 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 ### Run
 If the installation of all dependencies and ROS2 went well, you have to `cd` to the directory `/nao-move/dev_ws` and
 run
-- colcon build
+- `colcon build`
 - `ros2 launch robot_control robot_control.launch.py`.
 
 #### How to interact
