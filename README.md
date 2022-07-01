@@ -34,6 +34,7 @@ From the directory `/nao-move/dev_ws` run `ros2 launch robot_control robot_contr
 
 #### How to interact
 ![Robot modes](docs/images/robot_modes.png)
-  - show (gif?) of different sign language commands
+
+The sign language commands can be found [here](docs/
   - add table of different feedback commands
   
