@@ -15,14 +15,22 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 
 ## Installation
 ### Requirements / dependencies
+- python3
 - [ros2-foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
 - [colcon](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html#install-colcon) (`sudo apt install python3-colcon-common-extensions`)
 - tensorflow (`pip3 install tensorflow`)
+- mediapipe (`pip3 install mediapipe`)
+- pybullet (`pip3 install pybullet`)
+- qibullet (`pip3 install qibullet`)
+- opencv (`pip3 install opencv-python`)
 - numpy (`pip3 install numpy`)
 - pyaudio  (`sudo apt install portaudio19-dev python3-pyaudio` `pip3 install pyaudio` on Ubuntu 20.04)
 - vosk (`pip3 install vosk`)
 - pynput (`pip3 install pynput`)
+- kivy  (`pip3 install kivy`)
 - playsound (`pip3 install playsound`)
+- xclip (`sudo apt install xclip`)
+- [gTTs](https://gtts.readthedocs.io/en/latest/) (`pip3 install gTTs`)
 - [pyttsx3](https://pypi.org/project/pyttsx3/) On ubuntu 20.04, 
   - requires espeak: sudo apt install espeak
   - requires ffmpeg: sudo apt install ffmpeg
