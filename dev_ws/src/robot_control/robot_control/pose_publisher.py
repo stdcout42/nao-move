@@ -15,6 +15,9 @@ class PosePublisher(Node):
   sign_languages_published = 0
   last_movement_published = 'STOP'
   last_mode_received = 'IMITATE' 
+  last_rh_coords = None
+  last_lh_coords = None
+  last_rh_fr_origin_coords = None
 
   def __init__(self):
     super().__init__('pose_publisher')
@@ -45,20 +48,37 @@ class PosePublisher(Node):
 
   def publish_coords(self):
     coords_world = self.cvUtils.right_wrist_world_coords
+    coords_world_l = self.cvUtils.left_wrist_world_coords
     coords_from_origin = self.cvUtils.wrist_from_origin_fraction
-    if coords_world is not None:
+    new_coords = False
+    if coords_world is not None or coords_world_l:
       #self.get_logger().info(f'form origin: {coords_from_origin}')
       #self.get_logger().info(f'form world: {float(coords_world}')
       wrist_coordinates = WristCoordinates()
-      wrist_coordinates.world_coordinate.x = float(coords_world[0])
-      wrist_coordinates.world_coordinate.y = float(coords_world[1])
-      wrist_coordinates.world_coordinate.z = float(coords_world[2])
-      wrist_coordinates.from_origin_coordinate.x = float(coords_from_origin[0])
-      wrist_coordinates.from_origin_coordinate.y = float(coords_from_origin[1])
-      wrist_coordinates.from_origin_coordinate.z = float(coords_from_origin[2])
+      if self.last_rh_coords != coords_world:
+        wrist_coordinates.world_coordinate.x = float(coords_world[0])
+        wrist_coordinates.world_coordinate.y = float(coords_world[1])
+        wrist_coordinates.world_coordinate.z = float(coords_world[2])
+        self.last_rh_coords = coords_world
+        new_coords = True
+
+      if self.last_lh_coords != coords_world_l:
+        wrist_coordinates.world_coordinate_l.x = float(coords_world_l[0])
+        wrist_coordinates.world_coordinate_l.y = float(coords_world_l[1])
+        wrist_coordinates.world_coordinate_l.z = float(coords_world_l[2])
+        self.last_lh_coords = coords_world_l
+        new_coords = True
+
+      if self.last_rh_fr_origin_coords != coords_from_origin:
+        wrist_coordinates.from_origin_coordinate.x = float(coords_from_origin[0])
+        wrist_coordinates.from_origin_coordinate.y = float(coords_from_origin[1])
+        wrist_coordinates.from_origin_coordinate.z = float(coords_from_origin[2])
+        self.last_rh_fr_origin_coords = coords_from_origin
+        new_coords = True
 
       #print(coords_vec)
-      self.publisher_fist.publish(wrist_coordinates)
+      if new_coords:
+        self.publisher_fist.publish(wrist_coordinates)
   
   def publish_signlang(self):
     if self.cvUtils.sentence and self.cvUtils.sentence[-1] != 'nothing':
@@ -90,9 +110,12 @@ class PosePublisher(Node):
         self.cvUtils.set_sign_mode_txt(txt)
       elif bot_state.mode_name == Mode.RECORD.name:
         txt = 'Sign STOP when you\'re finished recording!'
+      elif bot_state.mode_name == Mode.MOVE.name:
+        txt = 'Sign STOP when you\'re done moving'
       else:
         txt = 'Sign HEY to get my attention!'
       self.cvUtils.set_sign_mode_txt(txt)
+
     if bot_state.record_init:
       self.timer_countdown = 3
       self.record_timer = self.create_timer(1, self.record_timer_cb)

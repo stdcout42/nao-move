@@ -14,7 +14,8 @@ from .math_utils import *
 L_FINGER21 = 'LFinger21_link'
 L_HAND = 'l_hand'
 L_WRIST = 'l_wrist'
-DEFAULT_LINK = L_HAND
+DEFAULT_LINK = L_FINGER21
+PAN_PATH = 'src/robot_control/robot_control/objects/dinnerware/pan_tefal.urdf'
 
 class PepperSimulator():
   name = 'PEPPER'
@@ -40,6 +41,7 @@ class PepperSimulator():
   max_angle = 0.15
   STARTING_ORN = -math.pi/2
   INIT_HIP_POS = [0, -0.004135, 0.60196]
+  two_arms_enabled = False
 
   def __init__(self):
     self.simulation_manager = SimulationManager()
@@ -94,7 +96,14 @@ class PepperSimulator():
 
     #print(f'Moving sim to x,y,z with z being height {coords}')
     ik = p.calculateInverseKinematics(self.pepper_id, endEffectorLinkIndex, coords)
-    joints_to_control = ['lshoulder', 'lelbow', 'hiproll', 'kneepitch', ]
+    if self.two_arms_enabled:
+      if end_effector == 'r_hand': 
+        joints_to_control = ['rshoulder', 'relbow',]
+      else:
+        joints_to_control = ['lshoulder', 'lelbow',]
+    else:
+      joints_to_control = ['lshoulder', 'lelbow', 'hiproll', 'kneepitch', ]
+
     if self.testing_started:
       color = [182/255, 3/255, 252/255]
 
@@ -108,11 +117,12 @@ class PepperSimulator():
              angle = self.max_angle if angle > 0 else -self.max_angle
 
          self.pepper.setAngles(joint, angle, 1)
-    if draw:
+    if not self.two_arms_enabled and draw:
       self.link_current_pos = self.pepper.getLinkPosition(end_effector)[0]
       p.addUserDebugLine(self.link_prev_pos, self.link_current_pos, color, 2, 40)
       self.link_prev_pos = self.link_current_pos
-    else: self.link_prev_pos = self.pepper.getLinkPosition(end_effector)[0]
+    elif end_effector != 'r_hand':
+      self.link_prev_pos = self.pepper.getLinkPosition(end_effector)[0]
 
   """
   Func: adjust_coordinates
@@ -127,9 +137,7 @@ class PepperSimulator():
     coords = copy.copy(coords)
     coords[2] *= -1
     coords[0] += self.INIT_HIP_POS[0]
-    if self.depth_is_fixed:
-      coords[1] = self.depth + self.INIT_HIP_POS[1]
-    else: coords[1] += self.INIT_HIP_POS[1]
+    coords[1] += self.INIT_HIP_POS[1]
     coords[2] += self.INIT_HIP_POS[2]
     return coords
 
@@ -181,6 +189,15 @@ class PepperSimulator():
       else:
         p.removeBody(self.tray)
         self.tray = None
+
+  def spawn_cookware(self):
+    if self.table:
+      p.removeBody(self.table)
+    if self.tray:
+      p.removeBody(self.tray)
+
+    self.table = p.loadURDF("table_square/table_square.urdf", basePosition=[0.3, -0.5,0])
+    self.pan = p.loadURDF(PAN_PATH, basePosition=[.15,-.35,.65])
   
   def set_init_obj_position(self, obj_str, pos):
     obj = get_obj_from_str(obj_str)

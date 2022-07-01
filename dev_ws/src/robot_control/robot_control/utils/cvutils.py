@@ -46,6 +46,7 @@ class CvUtils():
   mp_holistic = mp.solutions.holistic
   history_length = 16
   z_coord = -0.3
+  z_coord_l = -0.3
   wrist_from_origin_fraction = None
   mp_drawing = mp.solutions.drawing_utils # Drawing utilities
   mp_drawing_styles = mp.solutions.drawing_styles
@@ -56,15 +57,16 @@ class CvUtils():
   predictions = []
   fwd_circle = Circle(320, 120, 50, CircleDirection.FORWARD)
   right_circle = Circle(460, 240, 50, CircleDirection.RIGHT)
-  rotate_r_circle = Circle(540, 240, 50, CircleDirection.ROT_R)
+  rotate_r_circle = Circle(560, 240, 50, CircleDirection.ROT_R)
+  center_circle = Circle(320, 240, 50, CircleDirection.STOP)
   left_circle = Circle(180, 240, 50, CircleDirection.LEFT)
-  rotate_l_circle = Circle(100, 240, 50, CircleDirection.ROT_L)
+  rotate_l_circle = Circle(80, 240, 50, CircleDirection.ROT_L)
   bck_circle = Circle(320, 360, 50, CircleDirection.BACK)
   movement_circles = [fwd_circle, right_circle, bck_circle, left_circle, 
-      rotate_l_circle, rotate_r_circle]
+      rotate_l_circle, rotate_r_circle, center_circle]
   circle_dir_selected = CircleDirection.STOP
 
-  def __init__(self, video_src=0):
+  def __init__(self, video_src=1):
     self.cap = cv.VideoCapture(video_src)
     self.holistic = self.mp_holistic.Holistic()
     self.load_keypoint_classifier()
@@ -72,6 +74,7 @@ class CvUtils():
     self.point_history = deque(maxlen=self.history_length)
     self.right_wrist_coords = None # later to be [x,z,y] with z being depth
     self.right_wrist_world_coords = None # later to be [x,z,y] with z being depth
+    self.left_wrist_world_coords = None # later to be [x,z,y] with z being depth
     self.last_coords = None
     self.last_gesture = None
     tf.get_logger().setLevel('INFO')
@@ -84,6 +87,7 @@ class CvUtils():
     
    # Hands detections
     right_fist_detected =  False
+    left_fist_detected =  False
     threshold = 0.7
     sequence_length = 30
     #actions = np.array(['yes', 'no', 'nothing', 'play', 'hey', 'record', 'feedback', 'save'])
@@ -103,6 +107,8 @@ class CvUtils():
         debug_image = self.draw_bounding_rect(debug_image, brect)
         debug_image = self.draw_info_text(debug_image, brect, handedness,
              self.keypoint_classifier_labels[hand_sign_id])
+        if hand_sign_id == 0: 
+          left_fist_detected = True
       if results.left_hand_landmarks:
         handedness = 'right' # flipped
         brect = self.calc_bounding_rect(debug_image, results.left_hand_landmarks) 
@@ -138,6 +144,15 @@ class CvUtils():
             results.pose_world_landmarks.landmark[15].y,
         ]
         self.z_coord = results.pose_world_landmarks.landmark[15].z
+
+      if results.pose_landmarks and left_fist_detected:
+        self.left_wrist_world_coords = [
+            results.pose_world_landmarks.landmark[16].x, 
+            results.pose_world_landmarks.landmark[16].z,
+            results.pose_world_landmarks.landmark[16].y,
+        ]
+        self.z_coord_l = results.pose_world_landmarks.landmark[16].z
+
 
 
      
@@ -354,9 +369,12 @@ class CvUtils():
         circle.thickness = -1
         circle_dir = circle.direction
       else: 
-        cv.putText(image, circle.direction.name, (circle.x-25, circle.y), cv.FONT_HERSHEY_PLAIN,
-          1, (255, 255, 255), 1, cv.LINE_AA)
-        circle.color = (10, 220, 10) 
+        off_x = 0
+        if circle.direction == CircleDirection.FORWARD:
+          off_x = -18
+        cv.putText(image, circle.direction.name, (circle.x-25+off_x, circle.y), cv.FONT_HERSHEY_PLAIN,
+          1.4, (255, 21, 1), 2, cv.LINE_AA)
+        circle.color = (189, 40, 40)
         circle.thickness = 2
     self.circle_dir_selected = circle_dir
 

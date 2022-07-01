@@ -8,7 +8,7 @@ def get_modified_trajectory(trajectory, modification, angle=math.pi/2):
     return get_rotated_trajectory(trajectory, modification)
   return get_translated_trajectory(trajectory_copy, modification)
   
-def get_rotated_trajectory(trajectory, modification, angle=math.pi/2):
+def get_rotated_trajectory(trajectory, modification, angle=math.pi/4):
   centroid = get_centroid(trajectory)
   if modification == 'roll':
     trajectory =  list(map(lambda v: rotate_vector_xaxis(angle, v), trajectory))
@@ -26,15 +26,17 @@ def get_translated_trajectory(trajectory, modification):
   dx = dy = dz = 0
   c = 1.0
   if modification == 'up':
-    dz = 0.1
+    dz = 0.05
   elif modification == 'down':
-    dz = -0.1
+    dz = -0.05
   elif modification == 'right':
-    dx = 0.1 
+    dx = 0.05 
   elif modification == 'left':
-    dx = -0.1
+    dx = -0.05
   elif modification == 'bigger':
     c = 1.1
+  elif modification == 'smaller':
+    c = 0.9
   trajectory = list(map(lambda v: [v[0]*c+dx, v[1]+dy, v[2]*c-dz], 
     trajectory))
   new_centroid = get_centroid(trajectory)

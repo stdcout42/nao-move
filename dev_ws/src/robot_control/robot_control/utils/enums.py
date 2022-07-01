@@ -18,6 +18,15 @@ class VideoDemo(Enum):
   HEY = 'hey.mkv'
   PLAY = 'play.mkv'
   RECORD = 'record.mkv'
+  MOVE = 'move.mkv'
+  STOP = 'stop.mkv'
+  FEEDBACK = 'feedback.mkv'
+  UP = 'up.mkv'
+  RIGHT = 'right.mkv'
+  DOWN = 'down.mkv'
+  LEFT = 'left.mkv'
+  FIST = 'fist.mkv'
+
 
 def get_video_demo_from_str(vd_str):
   for vid_dem in list(VideoDemo):

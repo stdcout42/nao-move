@@ -47,7 +47,7 @@ class GuiDemo(App):
         pos=(260, self.HEIGHT-80), size_hint=(0.1, 0.1), markup=True, font_size=50)
 
     self.video_demo_player = VideoPlayer(source= join(self.VIDEO_DEMO_PATH, self.curr_video_demo.value),
-        state='play', options={'eos': 'loop'})
+        state='play', options={'eos': 'loop'}, volume=0)
     self.set_schedule_intervals()
 
   def build(self):

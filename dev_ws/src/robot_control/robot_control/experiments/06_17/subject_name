@@ -1,1 +1,0 @@
-11_13_35;TRIANGLE;{self.latest_rmse:.2f};{self.elapsed_time};{depth:.2f};{self.max_angle:.2f};{note}

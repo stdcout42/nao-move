@@ -69,15 +69,15 @@ class Gui(App):
   latest_rmse = 0.0
 
   cmd_btn_txts = ['start_test', 'stop', 'draw','name', 'feedback', 'record',
-      'replay', 'move', 'clean', 'spawn', 'set_obj_pos', 'set_depth', 'set_radius',
-      'set_max_angle', 'reset_base']
+      'replay', 'move', 'clean', 'spawn', 'two_arms', 'set_obj_pos', 'set_depth', 'set_radius',
+      'set_max_angle', 'reset_base', 'spawn_cookware']
   
   cmd_dropdown_btns = None
 
   shape_btn_txts = ['circle', 'triangle', 'square']
   shape_dropdown_btns = None
 
-  mod_btn_txts = ['no_mod', 'left', 'left', 'right', 'up', 'down', 'pitch',
+  mod_btn_txts = ['no_mod', 'left', 'right', 'up', 'down', 'pitch',
       'roll', 'yaw', 'bigger', 'smaller', 'slower', 'faster', 'draw']
   mod_dropdown_btns = None
 
@@ -116,7 +116,7 @@ class Gui(App):
         pos=(25, self.HEIGHT-90), size_hint=(0.30, 0.1))
 
     self.cmd_dropdown_btn = Button(text='Cmd',
-       pos=(10, self.HEIGHT-120), size_hint=(0.15,0.1), background_color=(0.1,0,1,1))
+       pos=(40, self.HEIGHT-120), size_hint=(0.20,0.1), background_color=(0.1,0,1,1))
     self.cmd_dropdown_btn.bind(on_release=self.cmd_dropdown.open)
     self.cmd_dropdown.bind(on_select=lambda instance, x: setattr(self.cmd_dropdown_btn, 'text', x))
 
@@ -140,8 +140,8 @@ class Gui(App):
         pos=(10, self.HEIGHT-240), size_hint=(0.35, 0.1))
 
     self.send_command_button = Button(text='Send cmd', 
-        pos=(10, self.HEIGHT-280), 
-        size_hint=(0.15,0.1), background_color=(0,1,0,1))
+        pos=(40, self.HEIGHT-280), 
+        size_hint=(0.20,0.1), background_color=(0,1,0,1))
     self.send_command_button.bind(on_press=self.send_cmd_pressed)
 
     self.video_label = Label(text='Demo GUI',
@@ -283,7 +283,7 @@ class Gui(App):
     time =  datetime.now().strftime('%H_%M_%S')
     f =  open(join(EXP_DIR, dir_name, f'{self.subject_name}'), 'a')
     f.write(f'{time};{self.test_shape};'+\
-        f'{self.latest_rmse:.2f};{self.elapsed_time};{depth};{self.max_angle:.2f};{note}\n')
+        f'{self.latest_rmse:.3f};{self.elapsed_time};{depth};{self.max_angle:.2f};{note}\n')
     f.close()
   
   def reset_timer_pressed(self, instance):
@@ -339,7 +339,7 @@ class Gui(App):
       self.max_angle_label.text = self.get_max_angle_txt()        
       self.depth_label.text = self.get_depth_txt()
       self.latest_rmse = bot_state.latest_rmse
-      self.rmse_label.text = f'RMSE: {self.latest_rmse:.2f}'
+      self.rmse_label.text = f'RMSE: {self.latest_rmse:.3f}'
       
       self.gui_publisher.bot_state = None
       self.bot_state = bot_state

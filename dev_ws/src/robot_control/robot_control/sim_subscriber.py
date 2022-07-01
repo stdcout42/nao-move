@@ -69,6 +69,8 @@ class SimSubscriber(Node):
   full_test = False
   testing_initiated = False
   testing_hey_received = False
+  two_arms_enabled = False
+  depth_is_fixed = False
 
 
   def __init__(self):
@@ -166,9 +168,14 @@ class SimSubscriber(Node):
         self.simulator.reset_base()
     elif msg.cmd == 'move':
       self.set_mode(Mode.MOVE)
+    elif msg.cmd == 'two_arms':
+      self.two_arms_enabled = not self.two_arms_enabled
+      self.simulator.two_arms_enabled = self.two_arms_enabled
     elif msg.cmd == 'spawn':
       if msg.obj:
         self.simulator.spawn_obj(msg.obj)
+    elif msg.cmd  == 'spawn_cookware':
+      self.simulator.spawn_cookware()
     elif msg.cmd == 'set_obj_pos':
       if msg.args:
         args = msg.args.split()
@@ -187,8 +194,10 @@ class SimSubscriber(Node):
       args = msg.args.split()
       if args[0] == 'on':
         self.simulator.set_depth(turn_on=True)
+        self.depth_is_fixed = True
       elif args[0] == 'off':
         self.simulator.set_depth(turn_on=False)
+        self.depth_is_fixed = False
       else: 
         try:
           depth = float(args[0])
@@ -223,22 +232,34 @@ class SimSubscriber(Node):
     #self.get_logger().info('Incoming gesture: "%s"' % msg.data)
     self.last_gesture = msg.data
 
+  
   def coords_callback(self, msg):
     #self.get_logger().info('Incoming coords: "%s"' % f'{msg.x}, {msg.y}, {msg.z}')
+    self.last_rh = []
+    self.last_lh = []
     if self.mode in (Mode.IMITATE, Mode.RECORD):
       color = [1,0,0] if self.mode == Mode.RECORD else [0,1,0]
+      
       world_coords = [
           msg.world_coordinate.x, 
-          msg.world_coordinate.y, 
+          msg.world_coordinate.y if not self.depth_is_fixed else -0.3, 
           msg.world_coordinate.z]
+
+      self.last_lh = [
+          msg.world_coordinate_l.x, 
+          msg.world_coordinate_l.y if not self.depth_is_fixed else -0.3, 
+          msg.world_coordinate_l.z]
+
 
       from_origin_coords = [
           msg.from_origin_coordinate.x, 
-          msg.from_origin_coordinate.y, 
+          msg.from_origin_coordinate.y if not self.depth_is_fixed else -0.3, 
           msg.from_origin_coordinate.z]
 
       coords = world_coords if self.PEPPER_SIM else from_origin_coords
       self.simulator.move_joint(coords, draw=True, color=color)
+      if self.two_arms_enabled and self.last_lh:
+        self.simulator.move_joint(self.last_lh, end_effector='r_hand')
 
       if self.mode == Mode.RECORD:
         self.trajectory.append(coords)
@@ -432,6 +453,9 @@ class SimSubscriber(Node):
     self.get_logger().info(f'recording in {self.timer_countdown}')
     self.timer_countdown -= 1
 
+  def set_two_arms_enabled(self, two_arms_enabled):
+    self.two_arms_enabled = two_arms_enabled
+    self.simulator.two_arms_enabled = two_arms_enabled
 
   def publish_bot_state(self, 
       mode_changed=False, 

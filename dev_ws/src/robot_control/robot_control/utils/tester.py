@@ -29,7 +29,7 @@ class Tester():
     if shape == Shape.TRIANGLE:
       coords = get_coordinates_triangle(get_vertices_triangle(center=link_pos))
     elif shape == Shape.SQUARE:
-      coords = get_coordinates_square(get_vertices_square(center=link_pos))
+      coords = get_coordinates_square(get_vertices_square(side_length=0.25, center=link_pos))
     elif shape == Shape.CIRCLE:
       coords = get_coordinates_circle(center=link_pos)
     if modification:
@@ -73,7 +73,7 @@ class Tester():
     if not shape:
       shape = self.shape_to_test
     self.set_test_shape(shape, modification)
-    self.simulator.draw_coordinates(self.test_shape_coords)
+    self.simulator.draw_coordinates(self.test_shape_coords, width=3)
     self.place_starting_shape_reference()
 
   def place_starting_shape_reference(self):
