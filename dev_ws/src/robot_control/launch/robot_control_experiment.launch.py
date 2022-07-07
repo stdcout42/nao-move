@@ -5,18 +5,18 @@ def generate_launch_description():
   return LaunchDescription([
         Node(
           package='robot_control', 
-          executable='sim_listener', 
+          executable='sim_controller', 
           output='screen'),
         Node(
             package='robot_control', 
-            executable='pose_talker', 
+            executable='cam_controller', 
             output='screen'), 
         Node(
             package='robot_control', 
-            executable='gui_talker', 
+            executable='gui_controller', 
             output='screen'),
         Node(
             package='robot_control', 
-            executable='gui_demo', 
+            executable='video_demo_controller', 
             output='screen'),
   ])

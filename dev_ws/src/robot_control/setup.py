@@ -25,11 +25,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-          'sim_listener = robot_control.sim_subscriber:main',
-          'pose_talker = robot_control.pose_publisher:main',
-          'speech_talker = robot_control.speech_publisher:main',
-          'gui_talker = robot_control.gui_publisher:main',
-          'gui_demo = robot_control.gui_demo:main',
+          'sim_controller = robot_control.sim_controller:main',
+          'cam_controller = robot_control.cam_controller:main',
+          'speech_controller = robot_control.speech_controller:main',
+          'gui_controller = robot_control.gui_controller:main',
+          'video_demo_controller = robot_control.video_demo_controller:main',
         ],
     },
 )

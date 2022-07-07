@@ -23,9 +23,9 @@ from robot_control.sim_subscriber import AutoName
 from .utils.enums import VideoDemo, get_video_demo_from_str
 
 EXP_DIR = 'src/robot_control/robot_control/experiments'
-class GuiPublisher(Node):
+class GuiController(Node):
   def __init__(self):
-    super().__init__('gui_publisher')
+    super().__init__('gui_controller')
     self.command_publisher = self.create_publisher(GuiCmd, 'gui', 10)
     self.demo_publisher = self.create_publisher(String, 'demo', 10)
     self.bot_state_subscription = self.create_subscription(BotState, 'bot_state', 
@@ -250,7 +250,7 @@ class Gui(App):
 
   def init_ros_node(self):
     rclpy.init(args=None)
-    self.gui_publisher  = GuiPublisher()
+    self.gui_controller  = GuiController()
 
   def set_schedule_intervals(self): 
     self.node_schedule = Clock.schedule_interval(self.spin_node, 1)
@@ -297,10 +297,10 @@ class Gui(App):
     return self.timer_is_on
 
   def spin_node(self, dt):
-    rclpy.spin_once(self.gui_publisher, timeout_sec=0.001)
+    rclpy.spin_once(self.gui_controller, timeout_sec=0.001)
  
   def check_bot_state(self, dt):
-    bot_state = self.gui_publisher.bot_state
+    bot_state = self.gui_controller.bot_state
     if bot_state:
       #self.log_text_input.text += f"{datetime.now().strftime('%H.%M')}: {bot_state}\n"
       if bot_state.mode_changed and \
@@ -341,7 +341,7 @@ class Gui(App):
       self.latest_rmse = bot_state.latest_rmse
       self.rmse_label.text = f'RMSE: {self.latest_rmse:.3f}'
       
-      self.gui_publisher.bot_state = None
+      self.gui_controller.bot_state = None
       self.bot_state = bot_state
 
   def send_cmd_pressed(self, instance):
@@ -357,7 +357,7 @@ class Gui(App):
     obj = obj if obj != 'Object' else ''
     args = args if args != 'arg0 arg1 arg2' else ''
     
-    self.gui_publisher.publish_command(
+    self.gui_controller.publish_command(
         cmd,
         shape,
         mods,
@@ -365,7 +365,7 @@ class Gui(App):
         args)
 
   def update_vid_pressed(self, instance):
-    self.gui_publisher.publish_demo(self.vids_dropdown_btn.text)
+    self.gui_controller.publish_demo(self.vids_dropdown_btn.text)
 
   def create_subject_file(self):
     dir_name = self.subject_name + datetime.now().strftime('%m_%d')

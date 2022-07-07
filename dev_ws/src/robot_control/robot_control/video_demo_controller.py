@@ -21,9 +21,9 @@ RED_COLOR = '[color=ff3333]'
 COLOR_CLOSE = '[/color]'
 
 
-class GuiSubscriber(Node):
+class VideoDemoController(Node):
   def __init__(self):
-    super().__init__('gui_listener')
+    super().__init__('video_demo_controller')
     self.demo_subscription = self.create_subscription(String, 'demo', self.demo_cb, 10)
     self.video_demo = VideoDemo.HEY
 
@@ -60,7 +60,7 @@ class GuiDemo(App):
 
   def init_ros_node(self):
     rclpy.init(args=None)
-    self.gui_subscriber  = GuiSubscriber()
+    self.video_demo_controller  = VideoDemoController()
 
   def set_schedule_intervals(self): 
     self.node_schedule = Clock.schedule_interval(self.spin_node, 1)
@@ -70,10 +70,10 @@ class GuiDemo(App):
     return f'{RED_COLOR}{self.curr_video_demo.name}{COLOR_CLOSE}'
 
   def spin_node(self, dt):
-    rclpy.spin_once(self.gui_subscriber, timeout_sec=0.01)
+    rclpy.spin_once(self.video_demo_controller, timeout_sec=0.01)
  
   def check_listener(self, dt):
-    video_demo = self.gui_subscriber.video_demo 
+    video_demo = self.video_demo_controller.video_demo 
     if video_demo != self.curr_video_demo:
       self.curr_video_demo = video_demo
       self.video_demo_player.source = join(self.VIDEO_DEMO_PATH, video_demo.value)

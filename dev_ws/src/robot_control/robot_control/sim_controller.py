@@ -56,7 +56,7 @@ class SpeechMode(AutoName):
   LISTEN = auto()
   OFF = auto()
 
-class SimSubscriber(Node):
+class SimController(Node):
   REPLAY_SPEED = 15
   REPLAY_RATIO = 1.0 / REPLAY_SPEED
   MAX_REPLAY_SPEED = 20
@@ -74,7 +74,7 @@ class SimSubscriber(Node):
 
 
   def __init__(self):
-    super().__init__('sim_subscriber')
+    super().__init__('sim_controller')
     self.mode = Mode.IMITATE
     self.speech_mode = SpeechMode.OFF
     self.speech_history = []
@@ -100,11 +100,11 @@ class SimSubscriber(Node):
         self.movement_callback, 
         10)
 
-   #self.speech_subscription = self.create_subscription(
-   #    String,
-   #    'speech',
-   #    self.speech_callback,
-   #    10)
+    self.speech_subscription = self.create_subscription(
+        String,
+        'speech',
+        self.speech_callback,
+        10)
 
     self.sign_lang_subscription = self.create_subscription(
         String,
@@ -490,11 +490,11 @@ def get_shape_from_str(shape_str):
 
 def main(args=None):
   rclpy.init(args=args)
-  sim_subscriber = SimSubscriber()
+  sim_controller = SimController()
   try:
-    rclpy.spin(sim_subscriber)
+    rclpy.spin(sim_controller)
   except KeyboardInterrupt:
-    sim_subscriber.destroy_node()
+    sim_controller.destroy_node()
     rclpy.shutdown()
     exit()
 

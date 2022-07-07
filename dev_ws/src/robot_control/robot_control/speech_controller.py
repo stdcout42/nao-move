@@ -9,14 +9,14 @@ from std_msgs.msg import String
 from vosk import Model, KaldiRecognizer
 from vosk import SetLogLevel 
 
-class SpeechPublisher(Node):
+class SpeechController(Node):
   # MIC_INPUT is set to the external mic input, the value of which 
   # has been retrieved by the pyaudio_test.py script.
   # On Ubuntu 20.04 this index is of the input source 'pulse'
   MIC_INPUT = 10
 
   def __init__(self):
-    super().__init__('speech_talker')
+    super().__init__('speech_controller')
     self.publisher_ = self.create_publisher(String, 'speech', 10)
     self.msg = String()
     SetLogLevel(-1)
@@ -49,10 +49,10 @@ class SpeechPublisher(Node):
 
 def main(args=None):
   rclpy.init(args=args)
-  speech_publisher = SpeechPublisher()
+  speech_controller = SpeechController()
 
-  rclpy.spin(speech_publisher)
-  speech_publisher.destroy_node()
+  rclpy.spin(speech_controller)
+  speech_controller.destroy_node()
   rclpy.shutdown()
 
 

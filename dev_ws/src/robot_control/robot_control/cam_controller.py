@@ -10,7 +10,7 @@ from nao_move_interfaces.msg import WristCoordinates
 from .utils.cvutils import CvUtils
 from .utils.enums import SignMode
 
-class PosePublisher(Node):
+class CamController(Node):
   cvUtils = CvUtils()
   sign_languages_published = 0
   last_movement_published = 'STOP'
@@ -20,7 +20,7 @@ class PosePublisher(Node):
   last_rh_fr_origin_coords = None
 
   def __init__(self):
-    super().__init__('pose_publisher')
+    super().__init__('cam_controller')
     self.publisher_fist = self.create_publisher(WristCoordinates, 'wrist_coords', 10)
     self.publisher_signlang = self.create_publisher(String, 'sign_lang', 10)
     self.publisher_movement = self.create_publisher(String, 'movement', 10)
@@ -132,10 +132,10 @@ class PosePublisher(Node):
 def main(args=None):
   rclpy.init(args=args)
 
-  pose_publisher  = PosePublisher()
+  cam_controller  = CamController()
 
-  rclpy.spin(pose_publisher)
-  pose_publisher.destroy_node()
+  rclpy.spin(cam_controller)
+  cam_controller.destroy_node()
   rclpy.shutdown()
 
 if __name__ == '__main__':

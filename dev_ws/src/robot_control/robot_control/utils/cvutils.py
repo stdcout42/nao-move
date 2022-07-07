@@ -16,7 +16,12 @@ https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe
 with influences of kinivi from the repo
 https://github.com/kinivi/hand-gesture-recognition-mediapipe, all
 modularized for the task at hand.
+
+
+Sign language implementation based on https://github.com/nicknochnack/ActionDetectionforSignLanguage: 
 """
+
+VIDEO_SRC = 0
 class AutoName(Enum):
   def _generate_next_value_(name, start, count, last_values): #pylint: disable=no-self-argument
     return name
@@ -66,7 +71,7 @@ class CvUtils():
       rotate_l_circle, rotate_r_circle, center_circle]
   circle_dir_selected = CircleDirection.STOP
 
-  def __init__(self, video_src=1):
+  def __init__(self, video_src=VIDEO_SRC):
     self.cap = cv.VideoCapture(video_src)
     self.holistic = self.mp_holistic.Holistic()
     self.load_keypoint_classifier()
