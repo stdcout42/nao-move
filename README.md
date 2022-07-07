@@ -37,7 +37,7 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 
 ### Configuration
 - Currently detects webcam from feed 0 (on linux: `/dev/video0`), if you have multiple video inputs, this might need to be changed in (change `VIDEO_SRC` in `dev_ws/src/robot_control/robot_control/utils/cvutils.py`)
-- Set `MIC_INPUT` in `dev_ws/src/robot_control/robot_control/SpeechController.py` 
+- If you have a mic other than your computer's default microphone,you have to set `MIC_INPUT` in `dev_ws/src/robot_control/robot_control/SpeechController.py` and set `EXT_MIC = True` 
 
 ### Run
 If the installation of all dependencies and ROS2 went well, you have to `cd` to the directory `/nao-move/dev_ws` and
