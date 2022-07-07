@@ -31,13 +31,12 @@ From (2) and (3) code snippets were taken and modified to fit for respectively, 
 - playsound (`pip3 install playsound`)
 - xclip (`sudo apt install xclip`)
 - [gTTs](https://gtts.readthedocs.io/en/latest/) (`pip3 install gTTs`)
-- [pyttsx3](https://pypi.org/project/pyttsx3/) On ubuntu 20.04, 
-  - requires espeak: sudo apt install espeak
-  - requires ffmpeg: sudo apt install ffmpeg
+
 
 ### Configuration
-- Currently hardcoded to detect webcam from feed 0 (on linux: `/dev/video0`)
-- Change this to your needs in the file `cvutils.py`
+- Currently detects webcam from feed 0 (on linux: `/dev/video0`), if you have multiple video inputs, this might need to be changed in (change `VIDEO_SRC` in `dev_ws/src/robot_control/robot_control/utils/cvutils.py`)
+- Set `MIC_INPUT` in `dev_ws/src/robot_control/robot_control/SpeechController.py` 
+
 ### Run
 If the installation of all dependencies and ROS2 went well, you have to `cd` to the directory `/nao-move/dev_ws` and
 run
