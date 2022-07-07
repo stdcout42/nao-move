@@ -48,6 +48,9 @@ First make sure you've sourced the ROS2 environment, then:
 - `. install/setup.bash` (assuming you're in bash)
 - `ros2 launch robot_control robot_control.launch.py`.
 
+To run with the the GUI to set up for testing / experiment, for the last step run:
+`ros2 launch robot_control robot_control.launch.py`
+
 #### How to interact
 ![Robot modes](docs/images/robot_modes.png)
 
