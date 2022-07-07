@@ -9,11 +9,13 @@ from std_msgs.msg import String
 from vosk import Model, KaldiRecognizer
 from vosk import SetLogLevel 
 
+EXT_MIC = False
+
 class SpeechController(Node):
   # MIC_INPUT is set to the external mic input, the value of which 
   # has been retrieved by the pyaudio_test.py script.
   # On Ubuntu 20.04 this index is of the input source 'pulse'
-  MIC_INPUT = 10
+  MIC_INPUT = 10 if EXT_MIC else None
 
   def __init__(self):
     super().__init__('speech_controller')
