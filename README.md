@@ -7,7 +7,7 @@ This is a framework developed for a bachelor thesis at The Vrije University at A
 The goal of this project is to enable non-expert users to use natural communication (speech and sign language) to interact with and create robot trajectories (in simulation). 
 
 This project draws inspiration from several sources: 
-1. The framework implemented by a team from UT at Austin, which developeda framework to move a robot arm (in simulation) by getting input from a visual system.
+1. This work is built on preliminary work done by a team of Bachelor students at UT Austin in the Socially Intelligent Machines Lab, who created a framework that is able to generate robot trajectories based on demonstrations gathered from a visual input system (a single lens camera).
 From (2) and (3) code snippets were taken and modified to fit for respectively, static and dynamic hand sign classifications:
 2. Static [Hand gesture recognition](https://github.com/kinivi/hand-gesture-recognition-mediapipe) library - which is a translation of a [repo](https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe) which is in Japanese. To classify and train (static) hand gestures.
 3. Dynamic [hand sign language recognition](https://github.com/nicknochnack/ActionDetectionforSignLanguage), to classify sign language and draw a probablity visualization.
