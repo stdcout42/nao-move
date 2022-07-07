@@ -76,7 +76,7 @@ class SimController(Node):
   def __init__(self):
     super().__init__('sim_controller')
     self.mode = Mode.IMITATE
-    self.speech_mode = SpeechMode.OFF
+    self.speech_mode = SpeechMode.LISTEN
     self.speech_history = []
     self.sign_lang_history = []
     self.trajectory = []
