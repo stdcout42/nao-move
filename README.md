@@ -2,7 +2,7 @@
 
 # nao-move: End-user programming of robot trajectories by using natural communication
 ## Description
-This is a framework developed for a bachelor thesis at The Vrije University at Amsterdam. 
+This is a framework developed for a bachelor [thesis](https://samanshahbazi.com/thesis.pdf) at The Vrije University at Amsterdam. 
 
 The goal of this project is to enable non-expert users to use natural communication (speech and sign language) to interact with and create robot trajectories (in simulation). 
 
