@@ -82,10 +82,3 @@ The demo topic uses the standard ROS message type (string). The GuiController us
 The bot_state topic uses the BotState message [see Appendix section z1] developed to notify subscribed nodes of changes to the robot's state (such as the current mode). The node SimController publishes to this topic, and the CamController and GuiController are the nodes that have a subscription to it. 
 
 The CamController uses the received data to determine what type of information to publish (coordinates or directions) and to display informative messages to the user. Whereas the GuiController receives the RMSE of the experiment findings, as well as other robot state information, and saves them to disk for subsequent analysis.
-
-
-## TODO
-- list of improvements
-- more documentation
-- more comments in the code
-- more modularization in the code
