@@ -3,7 +3,7 @@
 # PRESS: Programming Robots Effectively through Speech and Sign language
 End-user programming of robot trajectories by using natural communication
 ## Description
-This is a framework developed for a bachelor thesis at The Vrije University at Amsterdam. 
+This is a framework developed for Saman Shahbazi's bachelor thesis at The Free University Amsterdam. 
 
 The goal of this project is to enable non-expert users to use natural communication (speech and sign language) to interact with and create robot trajectories (in simulation). 
 
