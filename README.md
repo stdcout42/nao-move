@@ -1,6 +1,7 @@
 
 
-# nao-move: End-user programming of robot trajectories by using natural communication
+# PRESS: Programming Robots Effectively through Speech and Sign language
+End-user programming of robot trajectories by using natural communication
 ## Description
 This is a framework developed for a bachelor thesis at The Vrije University at Amsterdam. 
 
